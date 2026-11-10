@@ -84,6 +84,8 @@ This repository uses **GitHub Actions + Xcode automatic/cloud-managed signing**.
 
 The complete deploy configuration is kept together in **[GitHub Settings → Secrets and variables → Actions](https://github.com/DionBP/WorkingOut/settings/secrets/actions)**. Choose the **Secrets** tab for private credentials or **Variables** for non-sensitive app configuration.
 
+**Repository owner/admin action:** GitHub repository Secrets and Variables require administrative access. A collaborator with only write access may prepare this workflow and PR, but the repository owner/admin must enter the values under Settings.
+
 ### Step 1 — Obtain the Apple API key
 
 Open [App Store Connect → Users and Access → Integrations](https://appstoreconnect.apple.com/access/integrations/api) and select **App Store Connect API → Team Keys**. Use an active Team API key with sufficient rights to manage signing and upload builds (Admin is the simplest role for initial setup).
