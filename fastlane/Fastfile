@@ -58,7 +58,9 @@ platform :ios do
       export_method: "app-store",
       clean: true,
       xcargs: signing_args,
-      export_xcargs: signing_args,
+      # Fastlane already passes the export auth flags; duplicate flags fail xcodebuild.
+      # This is the verified fix from Padel TestFlight build #117.
+      export_xcargs: "-allowProvisioningUpdates",
       export_options: {
         method: "app-store",
         signingStyle: "automatic",
