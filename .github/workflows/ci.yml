@@ -4,7 +4,7 @@ name: CI
 # without this nothing compiles or tests changes before they land there.
 on:
   push:
-    branches-ignore: [main, certificates]
+    branches-ignore: [main]
   pull_request:
     branches: [main]
 

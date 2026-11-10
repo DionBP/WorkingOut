@@ -1,0 +1,9 @@
+// Local Xcode development fallback values (not the GitHub deployment configuration).
+// GitHub Actions sets these build settings using repository Variables.
+// Replace these defaults as well when creating a different app, if building locally.
+APP_DISPLAY_NAME = Padel
+APP_BUNDLE_IDENTIFIER = com.worsa.padel
+WATCH_APP_BUNDLE_IDENTIFIER = com.worsa.padel.watchapp
+WIDGET_BUNDLE_IDENTIFIER = com.worsa.padel.widgets
+WATCH_WIDGET_BUNDLE_IDENTIFIER = com.worsa.padel.watchapp.widgets
+ICLOUD_CONTAINER_IDENTIFIER = iCloud.com.worsa.padel

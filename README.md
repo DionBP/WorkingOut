@@ -78,85 +78,85 @@ The project has **no physical `.xcodeproj` committed** — CI generates it from
 `project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen) on every
 build.
 
-## Deploying to TestFlight
+## Deploying to TestFlight (Windows + GitHub)
 
-**This project is deployed straight from GitHub Actions — no local Xcode or
-Mac is needed.** `.github/workflows/testflight.yml` runs the PadelKit unit
-tests, generates the Xcode project, builds both apps with **Xcode 26**
-(App Store Connect requires the iOS 26 SDK), signs them via cloud signing,
-and uploads to TestFlight:
+This repository uses **GitHub Actions + Xcode automatic/cloud-managed signing**. You can set up TestFlight from Windows without a local Mac, a `.p12` export, a distribution-certificate password, provisioning-profile files, or Fastlane Match.
 
-- automatically on every **push to `main`**
-- or on demand via **Actions → Deploy to TestFlight → Run workflow**
+The complete deploy configuration is kept together in **[GitHub Settings → Secrets and variables → Actions](https://github.com/DionBP/WorkingOut/settings/secrets/actions)**. Choose the **Secrets** tab for private credentials or **Variables** for non-sensitive app configuration.
 
-Every build gets a unique build number from the GitHub Actions run number,
-so uploads never collide. After a green run, Apple processes the build for
-5–15 minutes before it appears under the app's TestFlight tab in App Store
-Connect.
+**Repository owner/admin action:** GitHub repository Secrets and Variables require administrative access. A collaborator with only write access may prepare this workflow and PR, but the repository owner/admin must enter the values under Settings.
 
-### Configuration (already set up — reference for changes)
+### Step 1 — Obtain the Apple API key
 
-**GitHub Actions secrets** (Settings → Secrets and variables → Actions).
-Exactly these five; no Apple ID email or password is needed anywhere — the
-API key fully replaces interactive Apple ID login for building, signing,
-and uploading:
+Open [App Store Connect → Users and Access → Integrations](https://appstoreconnect.apple.com/access/integrations/api) and select **App Store Connect API → Team Keys**. Use an active Team API key with sufficient rights to manage signing and upload builds (Admin is the simplest role for initial setup).
 
-| Secret | Value |
+Download the `.p8` file immediately after creation. **Apple lets you download the private key only once.** Never commit it or paste it into an online converter.
+
+### Step 2 — Create exactly three repository Secrets
+
+Select **Secrets → New repository secret** in GitHub.
+
+| Secret name | Where to copy it from | Example / format |
+|---|---|---|
+| `APP_STORE_CONNECT_KEY_ID` | **Key ID**, beside the Team Key in App Store Connect | `2X9R4HXF34` — normally 10 uppercase letters/digits |
+| `APP_STORE_CONNECT_ISSUER_ID` | **Issuer ID** on App Store Connect's API Integrations page | `57246542-96fe-1a63-e053-0824d011072a` — UUID, 36 characters including four hyphens |
+| `APP_STORE_CONNECT_API_KEY_P8_CONTENT` | The **complete, original text** of `AuthKey_<KEY_ID>.p8`; no conversion | Multiline text with `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` |
+
+The Apple `.p8` file looks like this (incomplete example only):
+
+```text
+-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBH...
+-----END PRIVATE KEY-----
+```
+
+**Keep both BEGIN and END lines and all content in between.** You can copy the complete text from the original file using a text viewer on your **iPhone or Windows computer**. GitHub supports multiline Secrets directly; **no Base64 conversion is necessary**.
+
+Open [WorkingOut → GitHub repository Secrets](https://github.com/DionBP/WorkingOut/settings/secrets/actions) and create `APP_STORE_CONNECT_API_KEY_P8_CONTENT`. Paste the **complete raw key text** into the value field and press **Add secret**. Never use the abbreviated example from this README.
+
+Apple only allows one download of each `.p8` private key. If your file is lost, create a replacement Team API key and update the associated `APP_STORE_CONNECT_KEY_ID` too. Do not commit or upload private-key contents to a website or chat. Base64 provides no secrecy and is not needed.
+
+### Step 3 — Create seven repository Variables
+
+Open [GitHub Settings → Secrets and variables → Actions](https://github.com/DionBP/WorkingOut/settings/variables/actions) and choose **Variables → New repository variable**.
+
+| Variable | What to enter |
 |---|---|
-| `APPLE_TEAM_ID` | The 10-character Apple Developer Team ID (Developer Portal → Membership) |
-| `APP_STORE_CONNECT_KEY_ID` | The API key's ID — the `XXXXXXXXXX` in `AuthKey_XXXXXXXXXX.p8` |
-| `APP_STORE_CONNECT_ISSUER_ID` | The Issuer ID shown on the Integrations page (shared by all keys) |
-| `APP_STORE_CONNECT_KEY_CONTENT` | The `.p8` key — raw PEM, base64 of the file, or just its inner base64 body all work |
-| `MATCH_PASSWORD` | Any passphrase you choose — encrypts the signing certificate stored on the `certificates` branch |
+| `APPLE_TEAM_ID` | Your Apple Developer **Team ID**, 10 characters, from the Apple Developer account's Membership details |
+| `APP_DISPLAY_NAME` | The name that should appear under the app icon (for example `WorkingOut`) |
+| `APP_BUNDLE_IDENTIFIER` | The **main iPhone app's** registered bundle ID |
+| `WATCH_APP_BUNDLE_IDENTIFIER` | The registered Watch app bundle ID |
+| `WIDGET_BUNDLE_IDENTIFIER` | The registered iOS widget extension bundle ID |
+| `WATCH_WIDGET_BUNDLE_IDENTIFIER` | The registered Watch widget extension bundle ID |
+| `ICLOUD_CONTAINER_IDENTIFIER` | The iCloud/CloudKit container identifier associated with the app |
 
-**The API key must be a Team Key with the Admin role** (App Store Connect →
-Users and Access → Integrations → **Team Keys**). Lesser roles can create
-development certificates but fail cloud signing for distribution with
-"Cloud signing permission error", and Individual Keys fail authentication
-outright because they don't use the team Issuer ID.
+**Important for this copied repository:** as checked when adding this deployment setup, `project.yml` and the local fallback `Config/App.xcconfig` still refer to Padel and `com.worsa.padel`. These are **not confirmed WorkingOut identities**. Do not copy them blindly to the seven Variables. Use the actual Team ID, display name, Bundle IDs and iCloud container that belong to the intended app/Apple team. This PR changes deployment wiring, not the app's UI or Swift source code.
 
-**Apple-side registrations** (already done for this app):
-- App record in App Store Connect with bundle ID `com.worsa.padel`
-- The Watch app's `com.worsa.padel.watchapp` identifier is registered
-  automatically by cloud signing — no manual step
+For TestFlight, the **seven GitHub Variables override the local values**. For local simulator builds without repository variables, `Config/App.xcconfig` retains the project's existing defaults.
 
-### One-time Apple setup for HealthKit & Live Activities
+### Step 4 — Register/check the matching Apple identifiers
 
-Two manual steps in the [Apple Developer portal](https://developer.apple.com/account/resources/identifiers/list)
-(Certificates, Identifiers & Profiles → Identifiers). **Do them before merging
-these features to `main`** — until they're done, the TestFlight deploy fails
-at the signing step (nothing breaks permanently; it succeeds on re-run once
-the steps are done):
+In the [Apple Developer identifiers portal](https://developer.apple.com/account/resources/identifiers/list), verify that the iPhone app, Watch app and both widget extensions have **explicit App IDs** matching the four corresponding GitHub Variables.
 
-1. **HealthKit on both apps**: open the `com.worsa.padel` identifier and the
-   `com.worsa.padel.watchapp` identifier → Capabilities → tick **HealthKit**
-   (no options/entitlement sub-choices needed) → Save. The iPhone app needs
-   HealthKit to show the tennis workout summary in Settings, while the Watch
-   app records the workouts. This invalidates the stored provisioning profiles;
-   the next deploy detects that and regenerates them automatically (`match`
-   runs with `readonly: false`).
-2. **Register the widget extension**: Identifiers → **+** → App IDs → App →
-   Description `Padel Widgets`, Bundle ID **explicit** `com.worsa.padel.widgets`
-   → no capabilities needed (Live Activities don't require one) → Register.
-   The next deploy creates its App Store provisioning profile automatically.
-3. **Register the Watch complication extension**: Identifiers → **+** → App IDs
-   → App → Description `Padel Watch Widgets`, Bundle ID **explicit**
-   `com.worsa.padel.watchapp.widgets` → no capabilities needed → Register. As
-   with the iPhone widget, the next deploy creates its provisioning profile
-   automatically and it ships inside the existing app record.
+The main app must have an [App Store Connect app record](https://appstoreconnect.apple.com/apps) with the same `APP_BUNDLE_IDENTIFIER`.
 
-No new certificates, no new secrets, and no App Store Connect changes are
-needed — the widget ships inside the existing app record.
+This codebase currently declares **HealthKit** for the iPhone and Watch targets and **iCloud/CloudKit** for the iPhone target. Enable the corresponding capabilities for the correct identifiers, and check that the `ICLOUD_CONTAINER_IDENTIFIER` belongs to the right team and app. These must match the source code's entitlements.
 
-The Fastlane lane validates the key against the App Store Connect API before
-building, so a misconfigured secret fails in under a minute with a precise
-message instead of a cryptic signing error later. Signing uses `fastlane
-match`: one Apple Distribution certificate and the App Store profiles for
-both bundle ids are created once, encrypted with `MATCH_PASSWORD`, and stored
-on this repository's `certificates` branch. Every CI run reuses that same
-certificate — ephemeral runners previously minted a fresh "Created via API"
-development certificate per run until the account hit Apple's certificate
-cap.
+### Step 5 — Run and verify the deployment
+
+Open **[Actions → Deploy to TestFlight](https://github.com/DionBP/WorkingOut/actions/workflows/testflight.yml)** and choose **Run workflow → main → Run workflow** after the pull request has been merged and all ten values are set.
+
+The workflow:
+1. Runs the PadelKit Swift unit tests (the package is still named PadelKit in this copied codebase).
+2. Verifies all **3 Secrets + 7 Variables** are present, and checks the Key ID and Issuer ID formats.
+3. Generates Xcode project and icons, then writes the complete raw private `.p8` content to a temporary file and validates it on the ephemeral macOS runner.
+4. Uses `-allowProvisioningUpdates` and App Store Connect API authentication for automatic signing/provisioning.
+5. Builds the iOS+Watch archive and uploads it to TestFlight.
+6. Deletes the temporary API key file even if the build fails.
+
+The workflow can also run automatically on pushes to `main`. A successful GitHub job means upload finished; App Store Connect still needs to process the build before testers can install it.
+
+**No longer used**: `MATCH_PASSWORD`, `APP_STORE_CONNECT_KEY_CONTENT`, `APP_STORE_CONNECT_API_KEY_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, or `APPLE_TEAM_ID` as a *secret*. Old secrets can be removed once a new deployment has been verified.
 
 ## Local development (optional)
 
@@ -182,14 +182,11 @@ swift test
 
 ## Changing bundle identifiers / team
 
-Everything Apple-specific lives in three places:
+The source project is still Padel, despite the repository being named WorkingOut. The GitHub **Variables** above are the single source of truth **for CI/TestFlight**. The corresponding values in `Config/App.xcconfig` are fallback defaults for local Mac builds.
 
-- `PRODUCT_BUNDLE_IDENTIFIER` for each target in `project.yml`
-- `app_identifier` in `fastlane/Appfile`
-- the bundle ID probed by the key-validation step in `fastlane/Fastfile`
+If this repository is becoming a distinct WorkingOut app, configure the seven Variables and matching Apple registrations first. Separately rename the Xcode project/scheme, product name, source text and local fallback values if you want the application itself to become WorkingOut. The deployment change intentionally does **not** rename Swift targets or alter app functionality.
 
-Update those, create a matching app record in App Store Connect, and the
-same workflow works unchanged.
+Keep the `APP_STORE_CONNECT_API_KEY_P8_CONTENT` private and use a new Team API key if the application belongs to a different Apple Developer team.
 
 ## Notes on the Americano scheduler
 

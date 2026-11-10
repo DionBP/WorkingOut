@@ -15,12 +15,10 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "26"
-
       - name: Run PadelKit unit tests
         working-directory: Packages/PadelKit
         run: swift test
@@ -30,10 +28,16 @@ jobs:
     needs: test-padel-kit
     runs-on: macos-15
     timeout-minutes: 60
-    # match stores the signing certificate + profiles on this repo's
-    # "certificates" branch, so the job needs write access to push there.
     permissions:
-      contents: write
+      contents: read
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      APP_DISPLAY_NAME: ${{ vars.APP_DISPLAY_NAME }}
+      APP_BUNDLE_IDENTIFIER: ${{ vars.APP_BUNDLE_IDENTIFIER }}
+      WATCH_APP_BUNDLE_IDENTIFIER: ${{ vars.WATCH_APP_BUNDLE_IDENTIFIER }}
+      WIDGET_BUNDLE_IDENTIFIER: ${{ vars.WIDGET_BUNDLE_IDENTIFIER }}
+      WATCH_WIDGET_BUNDLE_IDENTIFIER: ${{ vars.WATCH_WIDGET_BUNDLE_IDENTIFIER }}
+      ICLOUD_CONTAINER_IDENTIFIER: ${{ vars.ICLOUD_CONTAINER_IDENTIFIER }}
     steps:
       - uses: actions/checkout@v4
 
@@ -51,18 +55,65 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Validate deployment configuration
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_CONTENT }}
+        shell: bash
+        run: |
+          missing=()
+          for name in \
+            APP_STORE_CONNECT_KEY_ID APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_API_KEY_P8_CONTENT \
+            APPLE_TEAM_ID APP_DISPLAY_NAME APP_BUNDLE_IDENTIFIER WATCH_APP_BUNDLE_IDENTIFIER \
+            WIDGET_BUNDLE_IDENTIFIER WATCH_WIDGET_BUNDLE_IDENTIFIER ICLOUD_CONTAINER_IDENTIFIER; do
+            [[ -n "${!name:-}" ]] || missing+=("$name")
+          done
+          if (( ${#missing[@]} )); then
+            printf 'Missing required GitHub Actions Secret/Variable(s): %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+          if [[ ! "$APP_STORE_CONNECT_KEY_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "APP_STORE_CONNECT_KEY_ID should be exactly 10 uppercase letters/digits." >&2
+            exit 1
+          fi
+          if [[ ! "$APP_STORE_CONNECT_ISSUER_ID" =~ ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$ ]]; then
+            echo "APP_STORE_CONNECT_ISSUER_ID must be a 36-character UUID." >&2
+            exit 1
+          fi
+
       - name: Generate app icons
         run: python3 scripts/generate_app_icons.py
 
       - name: Generate Xcode project
         run: xcodegen generate
 
+      - name: Install App Store Connect API key
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_P8_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_CONTENT }}
+        shell: bash
+        run: |
+          API_KEY_PATH="$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+          umask 077
+          printf '%s' "$APP_STORE_CONNECT_API_KEY_P8_CONTENT" > "$API_KEY_PATH"
+          if ! grep -qx -- '-----BEGIN PRIVATE KEY-----' "$API_KEY_PATH" || ! grep -qx -- '-----END PRIVATE KEY-----' "$API_KEY_PATH"; then
+            echo "APP_STORE_CONNECT_API_KEY_P8_CONTENT must contain the full .p8 key, including BEGIN/END PRIVATE KEY lines." >&2
+            exit 1
+          fi
+          if ! openssl pkey -in "$API_KEY_PATH" -noout >/dev/null 2>&1; then
+            echo "APP_STORE_CONNECT_API_KEY_P8_CONTENT is not a valid .p8 private key." >&2
+            exit 1
+          fi
+          echo "APP_STORE_CONNECT_API_KEY_PATH=$API_KEY_PATH" >> "$GITHUB_ENV"
+
       - name: Build and upload to TestFlight
         env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bundle exec fastlane beta
+
+      - name: Remove temporary API key
+        if: always()
+        shell: bash
+        run: rm -f "${APP_STORE_CONNECT_API_KEY_PATH:-}"
