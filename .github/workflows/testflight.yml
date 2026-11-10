@@ -96,7 +96,6 @@ jobs:
         run: |
           API_KEY_PATH="$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
           umask 077
-          umask 077
           printf '%s' "$APP_STORE_CONNECT_API_KEY_P8_CONTENT" > "$API_KEY_PATH"
           if ! grep -qx -- '-----BEGIN PRIVATE KEY-----' "$API_KEY_PATH" || ! grep -qx -- '-----END PRIVATE KEY-----' "$API_KEY_PATH"; then
             echo "APP_STORE_CONNECT_API_KEY_P8_CONTENT must contain the full .p8 key, including BEGIN/END PRIVATE KEY lines." >&2
