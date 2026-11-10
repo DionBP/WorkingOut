@@ -100,9 +100,9 @@ Select **Secrets → New repository secret** in GitHub.
 |---|---|---|
 | `APP_STORE_CONNECT_KEY_ID` | **Key ID**, beside the Team Key in App Store Connect | `2X9R4HXF34` — normally 10 uppercase letters/digits |
 | `APP_STORE_CONNECT_ISSUER_ID` | **Issuer ID** on App Store Connect's API Integrations page | `57246542-96fe-1a63-e053-0824d011072a` — UUID, 36 characters including four hyphens |
-| `APP_STORE_CONNECT_API_KEY_BASE64` | The **entire** downloaded `AuthKey_<KEY_ID>.p8` file, encoded locally | One long Base64 string; it must contain the BEGIN/END lines after decoding |
+| `APP_STORE_CONNECT_API_KEY_P8_CONTENT` | The **complete, original text** of `AuthKey_<KEY_ID>.p8`; no conversion | Multiline text with `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` |
 
-The original Apple `.p8` file looks like this (illustrative text only):
+The Apple `.p8` file looks like this (incomplete example only):
 
 ```text
 -----BEGIN PRIVATE KEY-----
@@ -110,13 +110,11 @@ MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBH...
 -----END PRIVATE KEY-----
 ```
 
-**Keep both the BEGIN and END lines.** On Windows, place the `.p8` file in an easy-to-find folder, open **PowerShell in that folder**, and run the following (replace the filename with your actual key's filename):
+**Keep both BEGIN and END lines and all content in between.** You can copy the complete text from the original file using a text viewer on your **iPhone or Windows computer**. GitHub supports multiline Secrets directly; **no Base64 conversion is necessary**.
 
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_2X9R4HXF34.p8")) | Set-Clipboard
-```
+Open [WorkingOut → GitHub repository Secrets](https://github.com/DionBP/WorkingOut/settings/secrets/actions) and create `APP_STORE_CONNECT_API_KEY_P8_CONTENT`. Paste the **complete raw key text** into the value field and press **Add secret**. Never use the abbreviated example from this README.
 
-The complete Base64 result is now on the clipboard. Back on GitHub, create the secret named `APP_STORE_CONNECT_API_KEY_BASE64` and press **Ctrl+V** in its value field. The pasted value should be a single long line, **not** raw text beginning with `-----BEGIN PRIVATE KEY-----`.
+Apple only allows one download of each `.p8` private key. If your file is lost, create a replacement Team API key and update the associated `APP_STORE_CONNECT_KEY_ID` too. Do not commit or upload private-key contents to a website or chat. Base64 provides no secrecy and is not needed.
 
 ### Step 3 — Create seven repository Variables
 
@@ -151,14 +149,14 @@ Open **[Actions → Deploy to TestFlight](https://github.com/DionBP/WorkingOut/a
 The workflow:
 1. Runs the PadelKit Swift unit tests (the package is still named PadelKit in this copied codebase).
 2. Verifies all **3 Secrets + 7 Variables** are present, and checks the Key ID and Issuer ID formats.
-3. Generates Xcode project and icons, then safely reconstructs the complete private `.p8` file on the ephemeral macOS runner.
+3. Generates Xcode project and icons, then writes the complete raw private `.p8` content to a temporary file and validates it on the ephemeral macOS runner.
 4. Uses `-allowProvisioningUpdates` and App Store Connect API authentication for automatic signing/provisioning.
 5. Builds the iOS+Watch archive and uploads it to TestFlight.
 6. Deletes the temporary API key file even if the build fails.
 
 The workflow can also run automatically on pushes to `main`. A successful GitHub job means upload finished; App Store Connect still needs to process the build before testers can install it.
 
-**No longer used**: `MATCH_PASSWORD`, `APP_STORE_CONNECT_KEY_CONTENT`, `IOS_DISTRIBUTION_CERTIFICATE_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, or `APPLE_TEAM_ID` as a *secret*. Old secrets can be removed once a new deployment has been verified.
+**No longer used**: `MATCH_PASSWORD`, `APP_STORE_CONNECT_KEY_CONTENT`, `APP_STORE_CONNECT_API_KEY_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, or `APPLE_TEAM_ID` as a *secret*. Old secrets can be removed once a new deployment has been verified.
 
 ## Local development (optional)
 
@@ -188,7 +186,7 @@ The source project is still Padel, despite the repository being named WorkingOut
 
 If this repository is becoming a distinct WorkingOut app, configure the seven Variables and matching Apple registrations first. Separately rename the Xcode project/scheme, product name, source text and local fallback values if you want the application itself to become WorkingOut. The deployment change intentionally does **not** rename Swift targets or alter app functionality.
 
-Keep the `APP_STORE_CONNECT_API_KEY_BASE64` private and use a new Team API key if the application belongs to a different Apple Developer team.
+Keep the `APP_STORE_CONNECT_API_KEY_P8_CONTENT` private and use a new Team API key if the application belongs to a different Apple Developer team.
 
 ## Notes on the Americano scheduler
 
