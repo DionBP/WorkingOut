@@ -1,7 +1,6 @@
 require_relative 'temporary_signing'
-require 'minitest/autorun'
 
-class TemporarySigningTest < Minitest::Test
+class TemporarySigningTest
   def certificate(team = 'TEAM123', cn = 'Apple Development: CI')
     key = OpenSSL::PKey::RSA.new(2048)
     cert = OpenSSL::X509::Certificate.new
@@ -30,6 +29,9 @@ class TemporarySigningTest < Minitest::Test
     result = TemporarySigning.candidates(before_ids: Set['existing'], before_local: Set[fingerprint(prior_local)],
       after_remote: rows, after_local: [owned, old, distribution, wrong_team, prior_local].map { |c| fingerprint(c) }.to_set,
       team: 'TEAM123', started: Time.now)
-    assert_equal ['owned'], result.map { |r| r['id'] }
+    raise 'Unsafe certificate selection' unless result.map { |r| r['id'] } == ['owned']
+    puts 'PASS: only newly issued local development identity selected'
   end
 end
+
+TemporarySigningTest.new.test_only_new_local_team_development_identity_is_selected
