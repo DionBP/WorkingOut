@@ -30,3 +30,6 @@ Dion is the developer. Existing Padel-named targets and package remain temporari
 
 ## Roadmap
 Exercise library, sets/reps/weight, training plans, running GPS and pace, charts, Apple Watch workout recording, and evaluation of direct Garmin integration.
+
+### CI signing cleanup
+TestFlight snapshots Apple certificate IDs and runner signing identities before the build. After success or failure it revokes only new development certificates whose fingerprint matches a newly installed local signing identity for the same team. It never revokes distribution or pre-existing certificates. If ownership cannot be established, certificates are left untouched. Hard runner termination can prevent cleanup; inspect the Apple portal if necessary. Existing API credentials are reused; no extra secrets are required.
