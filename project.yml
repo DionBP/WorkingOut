@@ -150,12 +150,30 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: "$(WATCH_WIDGET_BUNDLE_IDENTIFIER)"
         SKIP_INSTALL: YES
 
+  WorkingOutUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: UITests/WorkingOut
+    dependencies:
+      - target: PadelApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(APP_BUNDLE_IDENTIFIER).uitests"
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: PadelApp
+
 schemes:
   PadelApp:
     build:
       targets:
         PadelApp: all
         PadelWatch: all
+    test:
+      config: Debug
+      targets:
+        - WorkingOutUITests
     run:
       config: Debug
     archive:

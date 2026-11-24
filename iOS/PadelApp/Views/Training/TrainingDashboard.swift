@@ -185,9 +185,16 @@ struct TrainingProgress: View {
     var calendar: Calendar
     @State private var range = 30
     @State private var exerciseID = ""
+    @State private var customStart = Calendar.current.date(byAdding: .day, value: -29, to: .now) ?? .now
+    @State private var customEnd = Date.now
 
     private var filtered: [TrainingActivity] {
         if range == 0 { return activities }
+        if range == -1 {
+            let start = calendar.startOfDay(for: customStart)
+            let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: customEnd)) ?? customEnd
+            return activities.filter { $0.date >= start && $0.date < end }
+        }
         let cutoff = calendar.date(byAdding: .day, value: 1 - range, to: calendar.startOfDay(for: .now)) ?? .distantPast
         return activities.filter { $0.date >= cutoff }
     }
@@ -197,10 +204,15 @@ struct TrainingProgress: View {
         let runs = filtered.filter { $0.running && $0.meters != nil }
         List {
             Picker(display.text("dateRange"), selection: $range) {
-                ForEach([7, 30, 90, 365, 0], id: \.self) { days in
+                ForEach([7, 30, 90, 365, 0, -1], id: \.self) { days in
                     Text(display.text("range." + String(days))).tag(days)
                 }
             }
+            if range == -1 {
+                DatePicker(display.text("startDate"), selection: $customStart, in: ...customEnd, displayedComponents: .date)
+                DatePicker(display.text("endDate"), selection: $customEnd, in: customStart..., displayedComponents: .date)
+            }
+            if !filtered.isEmpty { summary }
             if filtered.isEmpty { Text(display.text("emptyProgress")).foregroundStyle(.secondary) }
             if !strength.isEmpty {
                 Section(display.text("volume")) {
@@ -211,6 +223,7 @@ struct TrainingProgress: View {
                     }.frame(height: 160).accessibilityLabel(display.text("volume"))
                     exerciseChart(strength)
                 }
+                muscleSummary(strength)
             }
             if !runs.isEmpty {
                 Section(display.text("runningDistance")) {
@@ -220,11 +233,18 @@ struct TrainingProgress: View {
                             .foregroundStyle(Color.primary)
                     }.frame(height: 160).accessibilityLabel(display.text("runningDistance"))
                     LabeledContent(display.text("distance"), value: display.distanceText(runs.compactMap(\.meters).reduce(0, +)))
+                    let timed = runs.filter { ($0.duration ?? 0) > 0 }
+                    let totalDuration = timed.compactMap(\.duration).reduce(0, +)
+                    let totalDistance = timed.compactMap(\.meters).reduce(0, +)
+                    if let pace = TrainingMetrics.runningPaceSeconds(duration: totalDuration, kilometers: display.distance.display(totalDistance)) {
+                        LabeledContent(display.text("averagePace"), value: "\(display.duration(Double(pace))) / \(display.distance.rawValue)")
+                    }
                     if let longest = runs.compactMap(\.meters).max() {
                         LabeledContent(display.text("longestRun"), value: display.distanceText(longest))
                     }
                 }
             }
+            runningRecords(runs)
             Section(display.text("history")) {
                 ForEach(filtered) { activity in
                     if let session = activity.strength {
@@ -248,12 +268,63 @@ struct TrainingProgress: View {
         }.navigationTitle(display.text("progress"))
     }
 
+    private var summary: some View {
+        Section(display.text("workouts")) {
+            LabeledContent(display.text("strength"), value: filtered.filter { !$0.running }.count.formatted(.number.locale(display.locale)))
+            LabeledContent(display.text("running"), value: filtered.filter(\.running).count.formatted(.number.locale(display.locale)))
+            let durations = filtered.compactMap(\.duration)
+            if !durations.isEmpty {
+                LabeledContent(display.text("duration"), value: display.duration(durations.reduce(0, +)))
+            }
+        }
+    }
+
+    private func muscleSummary(_ sessions: [StrengthSession]) -> some View {
+        let counts = sessions.flatMap(\.exercises).reduce(into: [String: Int]()) { counts, exercise in
+            guard let id = exercise.exerciseID, let definition = ExerciseCatalog.byID[id] else { return }
+            let completed = exercise.sets.filter { $0.metric.isValid && $0.warmup != true }.count
+            if completed > 0 { counts[definition.primary, default: 0] += completed }
+        }
+        return Section(display.text("setsByMuscle")) {
+            if counts.isEmpty {
+                Text(display.text("emptyMuscle")).foregroundStyle(.secondary)
+            } else {
+                Chart {
+                    ForEach(counts.keys.sorted(), id: \.self) { muscle in
+                        BarMark(x: .value(display.text("workSets"), counts[muscle, default: 0]),
+                                y: .value(display.text("muscle"), display.text("muscle." + muscle)))
+                    }
+                }.foregroundStyle(Color.primary).frame(height: CGFloat(max(counts.count * 32, 120)))
+            }
+        }
+    }
+
+    private func runningRecords(_ activities: [TrainingActivity]) -> some View {
+        let distances = [1_000.0, 1_609.344, 5_000, 10_000, 21_097.5, 42_195]
+        let gps = activities.compactMap(\.run)
+        let records = distances.compactMap { meters in
+            gps.compactMap { $0.timeTo(meters: meters) }.min().map { (meters, $0) }
+        }
+        return Group {
+            if !records.isEmpty {
+                Section(display.text("gpsRecords")) {
+                    Text(display.text("gpsRecordDescription")).font(.footnote).foregroundStyle(.secondary)
+                    ForEach(records.indices, id: \.self) { index in
+                        LabeledContent(display.distanceText(records[index].0), value: display.duration(records[index].1))
+                    }
+                }
+            }
+        }
+    }
+
     private func exerciseChart(_ strength: [StrengthSession]) -> some View {
         let choices = Dictionary(grouping: strength.flatMap(\.exercises), by: \.identity)
-        let values = strength.compactMap { session -> (date: Date, best: Double)? in
+        let values = strength.compactMap { session -> (date: Date, best: Double, estimate: Double?)? in
             let sets = session.exercises.filter { $0.identity == exerciseID }.flatMap(\.sets)
                 .filter { $0.warmup != true && $0.kg > 0 }.map(\.metric)
-            return TrainingMetrics.heaviestWeight(sets).map { (session.date, $0) }
+            return TrainingMetrics.heaviestWeight(sets).map {
+                (session.date, $0, sets.compactMap(TrainingMetrics.estimatedOneRepMax).max())
+            }
         }.sorted { $0.date < $1.date }
         return Group {
             Picker(display.text("exerciseProgress"), selection: $exerciseID) {
@@ -277,8 +348,16 @@ struct TrainingProgress: View {
                         ForEach(values.indices, id: \.self) { index in
                             LineMark(x: .value(display.text("date"), values[index].date),
                                      y: .value(display.text("weight"), display.weight.display(values[index].best)))
+                                .foregroundStyle(by: .value(display.text("weight"), display.text("heaviest")))
                             PointMark(x: .value(display.text("date"), values[index].date),
                                       y: .value(display.text("weight"), display.weight.display(values[index].best)))
+                                .foregroundStyle(by: .value(display.text("weight"), display.text("heaviest")))
+                            if let estimate = values[index].estimate {
+                                LineMark(x: .value(display.text("date"), values[index].date),
+                                         y: .value(display.text("weight"), display.weight.display(estimate)))
+                                    .foregroundStyle(by: .value(display.text("weight"), display.text("estimatedMax")))
+                                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [4, 4]))
+                            }
                         }
                     }.frame(height: 140)
                 }

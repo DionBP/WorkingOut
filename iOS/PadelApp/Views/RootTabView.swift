@@ -111,6 +111,8 @@ struct RootTabView: View {
                 Picker(display.text("language"), selection: $language) {
                     ForEach(WorkingOutLanguage.allCases) { option in Text(display.text("language." + option.rawValue)).tag(option) }
                 }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("workingout.language")
                 Picker(display.text("weight"), selection: $weight) {
                     ForEach(WeightUnit.allCases) { Text($0.rawValue).tag($0) }
                 }

@@ -22,6 +22,9 @@ final class WorkoutLogTests: XCTestCase {
         XCTAssertEqual(log.history.first?.volume, 200)
         XCTAssertNil(log.history.first?.duration)
         XCTAssertEqual(log.exercises.first?.name, "Dion's lift")
+        XCTAssertEqual(log.customExercises?.first?.id, log.exercises.first?.exerciseID)
+        log.migrateExerciseIDs(["Bench Press": "bench-press"])
+        XCTAssertEqual(log.customExercises?.count, 1)
 
         log.exercises[0].name = "Dion's renamed lift"
         XCTAssertEqual(log.previousSets(for: "bench-press").first?.kg, 40)
@@ -101,6 +104,33 @@ final class WorkoutLogTests: XCTestCase {
         XCTAssertFalse(matches(link: nil, source: false, duration: 300))
         XCTAssertTrue(matches(link: nil, source: true, duration: 300))
         XCTAssertTrue(matches(link: nil, source: true, duration: nil, externalStart: start.addingTimeInterval(-300)))
+    }
+
+    func testDeletingStrengthLogTracksTheLinkedHealthWorkout() {
+        var log = StrengthLog()
+        var session = StrengthSession(exercises: [])
+        session.healthID = UUID()
+        log.history = [session]
+        log.deleteSession(id: session.id)
+        log.deleteSession(id: session.id)
+        XCTAssertTrue(log.history.isEmpty)
+        XCTAssertEqual(log.hiddenSyncIDs, [session.id])
+        XCTAssertEqual(log.hiddenHealthIDs?.first, session.healthID)
+    }
+
+    func testDistanceRecordRequiresACompletedContinuousGPSRun() throws {
+        var run = RunRecord(date: start)
+        run.points = [
+            RunPoint(latitude: 0, longitude: 0, elapsed: 20, meters: 0, newSegment: true),
+            RunPoint(latitude: 0, longitude: 0, elapsed: 140, meters: 1_200, newSegment: false),
+            RunPoint(latitude: 0, longitude: 0, elapsed: 200, meters: 1_200, newSegment: true),
+            RunPoint(latitude: 0, longitude: 0, elapsed: 280, meters: 2_000, newSegment: false)
+        ]
+        XCTAssertNil(run.timeTo(meters: 1_000))
+        run.finishDate = start.addingTimeInterval(300)
+        XCTAssertEqual(try XCTUnwrap(run.timeTo(meters: 1_000)), 100, accuracy: 0.000_001)
+        XCTAssertNil(run.timeTo(meters: 1_609.344))
+        XCTAssertNil(run.timeTo(meters: .nan))
     }
 
     func testRunningSplitsInterpolateAndExcludePausedTime() throws {

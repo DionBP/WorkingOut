@@ -41,6 +41,20 @@ public struct RunRecord: Codable, Identifiable, Sendable {
         self.paused = nil
     }
 
+    /// Elapsed time from the first GPS fix to a distance covered without a signal gap.
+    public func timeTo(meters target: Double) -> TimeInterval? {
+        guard finishDate != nil, target.isFinite, target > 0, let origin = points.first else { return nil }
+        for (start, end) in zip(points, points.dropFirst()) {
+            guard !end.newSegment else { return nil }
+            if start.meters < target, end.meters >= target {
+                let fraction = (target - start.meters) / (end.meters - start.meters)
+                let duration = start.elapsed + (end.elapsed - start.elapsed) * fraction - origin.elapsed
+                return duration > 0 ? duration : nil
+            }
+        }
+        return nil
+    }
+
     public func splits(unit: DistanceUnit) -> [TimeInterval] {
         let interval = unit == .km ? 1_000.0 : 1_609.344
         var splits: [TimeInterval] = []

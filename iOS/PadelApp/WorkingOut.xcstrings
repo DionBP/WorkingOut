@@ -477,6 +477,23 @@
         }
       }
     },
+    "emptyMuscle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log exercises from the library to see sets by muscle."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrér øvelser fra biblioteket for at se sæt pr. muskel."
+          }
+        }
+      }
+    },
     "emptyOverview": {
       "extractionState": "manual",
       "localizations": {
@@ -507,6 +524,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ingen træning i denne periode."
+          }
+        }
+      }
+    },
+    "endDate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End date"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slutdato"
           }
         }
       }
@@ -2636,6 +2670,40 @@
         }
       }
     },
+    "gpsRecordDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fastest time from the first GPS fix to each distance, with continuous GPS coverage."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hurtigste tid fra første GPS-måling til hver distance med sammenhængende GPS-dækning."
+          }
+        }
+      }
+    },
+    "gpsRecords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Running records"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Løberekorder"
+          }
+        }
+      }
+    },
     "gpsUnavailable": {
       "extractionState": "manual",
       "localizations": {
@@ -3860,6 +3928,23 @@
         }
       }
     },
+    "range.-1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom dates"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brugerdefinerede datoer"
+          }
+        }
+      }
+    },
     "range.0": {
       "extractionState": "manual",
       "localizations": {
@@ -4217,6 +4302,23 @@
         }
       }
     },
+    "setsByMuscle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Working sets by primary muscle"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbejdssæt pr. primær muskel"
+          }
+        }
+      }
+    },
     "skipRest": {
       "extractionState": "manual",
       "localizations": {
@@ -4247,6 +4349,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mellemtider"
+          }
+        }
+      }
+    },
+    "startDate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start date"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startdato"
           }
         }
       }
@@ -4642,6 +4761,23 @@
         }
       }
     },
+    "workSets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Working sets"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbejdssæt"
+          }
+        }
+      }
+    },
     "workout": {
       "extractionState": "manual",
       "localizations": {
@@ -4655,6 +4791,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Træning"
+          }
+        }
+      }
+    },
+    "workouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workouts"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træninger"
           }
         }
       }
