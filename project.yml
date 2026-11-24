@@ -52,10 +52,11 @@ targets:
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleLocalizations: [en, da]
-        NSLocationWhenInUseUsageDescription: "Padel uses your location to find shared matches and players on nearby courts."
+        NSLocationWhenInUseUsageDescription: "WorkingOut uses your location during a run to measure distance, pace, and route."
         # Required in the companion app because the embedded Watch app uses HealthKit.
         NSHealthShareUsageDescription: "WorkingOut reads workouts, heart rate, distance and energy to show training history and progress."
         NSHealthUpdateUsageDescription: "WorkingOut saves recorded strength and running workouts to Apple Health."
+        UIBackgroundModes: [location]
         NSSupportsLiveActivities: true
         ITSAppUsesNonExemptEncryption: false
         UIApplicationSceneManifest:
