@@ -36,6 +36,9 @@ jobs:
         working-directory: Packages/PadelKit
         run: swift test
 
+      - name: Check English and Danish String Catalogs
+        run: python3 scripts/check_workingout_localization.py
+
       - name: Run WorkingOutKit unit tests
         working-directory: Packages/WorkingOutKit
         run: swift test
