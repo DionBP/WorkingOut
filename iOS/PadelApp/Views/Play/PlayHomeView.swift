@@ -15,6 +15,18 @@ struct PlayHomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.large) {
+                HStack(spacing: 12) {
+                    Image("WorkingOutLogo").resizable().scaledToFit()
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 13))
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("WorkingOut").font(.title2.bold())
+                        Text("Strength & Running").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+
                 if nearbyGameCount > 0 {
                     Button { showingJoin = true } label: { NearbyGamesBanner(count: nearbyGameCount) }
                         .buttonStyle(PremiumPressStyle())
@@ -55,7 +67,7 @@ struct PlayHomeView: View {
             .padding(DesignSystem.Spacing.large)
         }
         .contentMargins(.bottom, DesignSystem.Spacing.large, for: .scrollContent)
-        .padelBackground().screenTitle("Play")
+        .padelBackground().screenTitle("WorkingOut")
         .sheet(isPresented: $showingJoin) { JoinMatchView() }
         .task { await checkForNearbyGames() }.refreshable { await checkForNearbyGames() }
     }

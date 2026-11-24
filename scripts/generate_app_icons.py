@@ -4,7 +4,7 @@
 The repository keeps app icon generation as source code so PRs can stay text-only
 (GitHub's mobile PR flow does not support binary PNG changes reliably). CI runs
 this script before XcodeGen/build so the archived TestFlight app contains the
-updated tennis-ball icons.
+updated dumbbell icons.
 """
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ def write_png(path: Path, width: int, height: int, rows: list[bytearray]) -> Non
 
     path.write_bytes(
         b"\x89PNG\r\n\x1a\n"
-        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0))
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
         + chunk(b"IDAT", zlib.compress(raw, 9))
         + chunk(b"IEND", b"")
     )
@@ -69,7 +69,7 @@ def render_icon(size: int) -> list[bytearray]:
         for x in range(size):
             source_x = (x + 0.5) * scale
             source_y = (y + 0.5) * scale
-            row.extend(icon_pixel(source_x, source_y))
+            row.extend(icon_pixel(source_x, source_y)[:3])
         rows.append(row)
     return rows
 

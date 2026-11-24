@@ -9,6 +9,15 @@ struct WatchHomeView: View {
 
     var body: some View {
         List {
+            HStack {
+                Spacer()
+                Image("WorkingOutLogo").resizable().scaledToFit()
+                    .frame(width: 52, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .accessibilityLabel("WorkingOut")
+                Spacer()
+            }
+            .listRowBackground(Color.clear)
             if let match = store.activeMatch, !match.isFinished {
                 Section {
                     NavigationLink {
@@ -107,7 +116,7 @@ struct WatchHomeView: View {
                 .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("Padel")
+        .navigationTitle("WorkingOut")
         .navigationDestination(isPresented: $quickMatchStarted) {
             WatchLiveMatchView()
         }
