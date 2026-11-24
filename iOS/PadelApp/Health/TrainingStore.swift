@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import HealthKit
+import CoreLocation
 import WorkingOutKit
 
 @MainActor
@@ -17,7 +18,11 @@ final class TrainingStore: ObservableObject {
     func connect() async {
         guard available else { issue = "healthUnavailable"; return }
         do {
-            try await health.requestAuthorization(toShare: [.workoutType()], read: [.workoutType()])
+            let read: Set<HKObjectType> = [
+                HKObjectType.workoutType(), HKSeriesType.workoutRoute(),
+                HKQuantityType(.heartRate), HKQuantityType(.activeEnergyBurned), HKQuantityType(.distanceWalkingRunning)
+            ]
+            try await health.requestAuthorization(toShare: [.workoutType()], read: read)
             await refresh()
         } catch { issue = "healthAuthorizationError" }
     }
@@ -50,13 +55,19 @@ final class TrainingStore: ObservableObject {
         } while refreshPending
     }
 
-    func unlinkedWorkouts(_ strength: [StrengthSession], runs: [RunRecord]) -> [HKWorkout] {
-        workouts.filter { workout in
+    func unlinkedWorkouts(_ log: StrengthLog) -> [HKWorkout] {
+        let hiddenIDs = Set(log.hiddenHealthIDs ?? [])
+        let hiddenSyncIDs = Set((log.hiddenSyncIDs ?? []).map(\.uuidString))
+        let runs = log.runs ?? []
+        return workouts.filter { workout in
+            if hiddenIDs.contains(workout.uuid) { return false }
+            if workout.sourceRevision.source.bundleIdentifier == Bundle.main.bundleIdentifier,
+               let id = workout.metadata?[HKMetadataKeySyncIdentifier] as? String, hiddenSyncIDs.contains(id) { return false }
             if workout.workoutActivityType == .running {
                 return !runs.contains { $0.healthID == workout.uuid || owns(workout, id: $0.id) }
             }
             guard workout.workoutActivityType == .traditionalStrengthTraining else { return true }
-            return !strength.contains { session in
+            return !log.history.contains { session in
                 if owns(workout, id: session.id) { return true }
                 return ActivityReconciliation.matches(
                     localID: session.healthID, localStart: session.date, localDuration: session.duration,
@@ -71,7 +82,7 @@ final class TrainingStore: ObservableObject {
         guard available, health.authorizationStatus(for: .workoutType()) == .sharingAuthorized,
               let duration = session.duration, duration > 0 else { return nil }
         let workout = HKWorkout(
-            activityType: .traditionalStrengthTraining, start: session.date, end: session.date.addingTimeInterval(duration),
+            activityType: .traditionalStrengthTraining, start: session.date, end: session.endDate ?? session.date.addingTimeInterval(duration),
             duration: duration, totalEnergyBurned: nil, totalDistance: nil,
             metadata: [HKMetadataKeySyncIdentifier: session.id.uuidString, HKMetadataKeySyncVersion: 1]
         )
@@ -101,6 +112,33 @@ final class TrainingStore: ObservableObject {
             issue = "healthWriteError"
             return nil
         }
+    }
+
+    func route(for id: UUID) async throws -> [[CLLocation]] {
+        guard let workout = workouts.first(where: { $0.uuid == id }) else { return [] }
+        let routes: [HKWorkoutRoute] = try await withCheckedThrowingContinuation { continuation in
+            let query = HKSampleQuery(sampleType: HKSeriesType.workoutRoute(), predicate: HKQuery.predicateForObjects(from: workout),
+                                      limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error { continuation.resume(throwing: error) }
+                else { continuation.resume(returning: samples as? [HKWorkoutRoute] ?? []) }
+            }
+            health.execute(query)
+        }
+        var result: [[CLLocation]] = []
+        for route in routes {
+            let stream = AsyncThrowingStream<[CLLocation], Error> { continuation in
+                let query = HKWorkoutRouteQuery(route: route) { _, points, done, error in
+                    if let error { continuation.finish(throwing: error); return }
+                    if let points { continuation.yield(points) }
+                    if done { continuation.finish() }
+                }
+                health.execute(query)
+            }
+            var segment: [CLLocation] = []
+            for try await points in stream { segment.append(contentsOf: points) }
+            if segment.count > 1 { result.append(segment) }
+        }
+        return result
     }
 
     private func owns(_ workout: HKWorkout, id: UUID) -> Bool {

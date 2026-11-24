@@ -41,6 +41,7 @@ public struct StrengthSession: Codable, Identifiable, Sendable {
     public var duration: TimeInterval?
     public var notes: String?
     public var healthID: UUID?
+    public var endDate: Date?
 
     public init(date: Date = Date(), exercises: [StrengthExercise], duration: TimeInterval? = nil, notes: String? = nil) {
         self.date = date
@@ -88,6 +89,8 @@ public struct StrengthLog: Codable, Sendable {
     public var programs: [StrengthProgram]?
     public var runs: [RunRecord]?
     public var activeRun: RunRecord?
+    public var hiddenHealthIDs: [UUID]?
+    public var hiddenSyncIDs: [UUID]?
     public var customExercises: [CustomExercise]?
     public var started: Date?
     public var paused: Date?
@@ -99,13 +102,33 @@ public struct StrengthLog: Codable, Sendable {
     public init() {}
 
     public mutating func migrateExerciseIDs(_ legacyCatalog: [String: String]) {
+        var custom = customExercises ?? []
         func migrate(_ exercises: inout [StrengthExercise]) {
             for index in exercises.indices where exercises[index].exerciseID == nil {
-                exercises[index].exerciseID = legacyCatalog[exercises[index].name]
+                let name = exercises[index].name
+                if let known = legacyCatalog[name] {
+                    exercises[index].exerciseID = known
+                } else {
+                    let id = "legacy:" + name
+                    exercises[index].exerciseID = id
+                    if !custom.contains(where: { $0.id == id }) {
+                        custom.append(CustomExercise(id: id, name: name))
+                    }
+                }
             }
         }
         migrate(&exercises)
         for index in history.indices { migrate(&history[index].exercises) }
+        customExercises = custom
+    }
+
+    public mutating func deleteSession(id: UUID) {
+        guard let session = history.first(where: { $0.id == id }) else { return }
+        history.removeAll { $0.id == id }
+        hiddenSyncIDs = (hiddenSyncIDs ?? []) + [id]
+        if let healthID = session.healthID {
+            hiddenHealthIDs = (hiddenHealthIDs ?? []) + [healthID]
+        }
     }
 
     public func elapsed(at date: Date) -> TimeInterval? {
@@ -120,7 +143,9 @@ public struct StrengthLog: Codable, Sendable {
             return copy.sets.isEmpty ? nil : copy
         }
         guard !completed.isEmpty else { return false }
-        history.append(StrengthSession(date: started ?? date, exercises: completed, duration: elapsed(at: date), notes: notes))
+        var session = StrengthSession(date: started ?? date, exercises: completed, duration: elapsed(at: date), notes: notes)
+        session.endDate = date
+        history.append(session)
         discard()
         return true
     }

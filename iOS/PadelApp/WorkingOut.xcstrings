@@ -120,6 +120,23 @@
         }
       }
     },
+    "averageHeartRate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Average heart rate (bpm)"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gennemsnitspuls (slag/min.)"
+          }
+        }
+      }
+    },
     "averagePace": {
       "extractionState": "manual",
       "localizations": {
@@ -2540,13 +2557,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In Garmin Connect, enable Apple Health sharing and allow workouts. Sync your watch, open Garmin Connect, then refresh workouts here. Available distance and energy depend on what Garmin writes to Apple Health. Detailed sets, routes and heart rate may be unavailable. Choose one device to record each session."
+            "value": "In Apple Health, tap your profile photo, select Apps under Privacy, then select Connect and allow Workouts. Sync your watch with Garmin Connect open, then refresh here. Garmin does not share GPS routes through Apple Health, and workout distance, energy, and heart-rate details depend on the source. Record each session on one device."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Slå deling med Apple Sundhed til i Garmin Connect, og tillad træninger. Synkroniser uret, åbn Garmin Connect, og opdater derefter træninger her. Distance og energi afhænger af, hvad Garmin skriver til Apple Sundhed. Detaljerede sæt, ruter og puls kan mangle. Brug én enhed til at registrere hver træning."
+            "value": "Tryk på dit profilbillede i Apple Sundhed, vælg Apps under Anonymitet, vælg Connect, og tillad Træninger. Synkroniser uret med Garmin Connect åben, og opdater her. Garmin deler ikke GPS-ruter via Apple Sundhed. Oplysninger om distance, energi og puls afhænger af kilden. Registrér hver træning på én enhed."
           }
         }
       }
@@ -3662,13 +3679,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Strength logs are stored on this device. Apple Health data is accessed through Apple Health permissions."
+            "value": "Training logs and GPS routes are stored on this device. Access to Apple Health data requires permission."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Styrkeloggen gemmes på denne enhed. Adgang til sundhedsdata styres via tilladelser i Apple Sundhed."
+            "value": "Træningsloggen og GPS-ruter gemmes på denne enhed. Adgang til data fra Apple Sundhed kræver tilladelse."
           }
         }
       }

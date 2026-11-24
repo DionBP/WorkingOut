@@ -127,3 +127,38 @@ struct RunRoute: View {
         }
     }
 }
+
+struct ImportedWorkoutDetail: View {
+    var activity: TrainingActivity
+    var display: TrainingPresentation
+    @ObservedObject var health: TrainingStore
+    @State private var segments: [[CLLocationCoordinate2D]] = []
+
+    var body: some View {
+        List {
+            Section {
+                ActivityRow(activity: activity, display: display)
+                if let heartRate = activity.heartRate {
+                    LabeledContent(display.text("averageHeartRate"), value: display.number(heartRate, precision: 0))
+                }
+            }
+            if !segments.isEmpty {
+                Section(display.text("route")) {
+                    Map {
+                        ForEach(segments.indices, id: \.self) { index in
+                            MapPolyline(coordinates: segments[index]).stroke(TrainingDesign.lime, lineWidth: 4)
+                        }
+                    }
+                    .frame(height: 230)
+                    .accessibilityLabel(display.text("route"))
+                }
+            }
+        }
+        .navigationTitle(display.text(activity.running ? "running" : "strength"))
+        .task(id: activity.id) {
+            if activity.running, let routes = try? await health.route(for: activity.id) {
+                segments = routes.map { $0.map(\.coordinate) }
+            }
+        }
+    }
+}

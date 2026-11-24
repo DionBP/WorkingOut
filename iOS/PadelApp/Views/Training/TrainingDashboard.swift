@@ -10,6 +10,7 @@ struct TrainingActivity: Identifiable {
     let running: Bool
     var meters: Double?
     var energy: Double?
+    var heartRate: Double?
     var source: String?
     var strength: StrengthSession?
     var run: RunRecord?
@@ -19,8 +20,12 @@ struct TrainingActivity: Identifiable {
         let imported = external.map { workout in
             Self(id: workout.uuid, date: workout.startDate, duration: workout.duration,
                  running: workout.workoutActivityType == .running,
-                 meters: workout.totalDistance?.doubleValue(for: .meter()),
-                 energy: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()),
+                 meters: (workout.statistics(for: HKQuantityType(.distanceWalkingRunning))?.sumQuantity() ?? workout.totalDistance)?
+                    .doubleValue(for: .meter()),
+                 energy: (workout.statistics(for: HKQuantityType(.activeEnergyBurned))?.sumQuantity() ?? workout.totalEnergyBurned)?
+                    .doubleValue(for: .kilocalorie()),
+                 heartRate: workout.statistics(for: HKQuantityType(.heartRate))?.averageQuantity()?
+                    .doubleValue(for: HKUnit.count().unitDivided(by: .minute())),
                  source: workout.sourceRevision.source.name)
         }
         let running = runs.map { run in
@@ -174,6 +179,7 @@ struct ActivityRow: View {
 
 struct TrainingProgress: View {
     @ObservedObject var gym: GymLog
+    @ObservedObject var health: TrainingStore
     var display: TrainingPresentation
     var activities: [TrainingActivity]
     var calendar: Calendar
@@ -233,7 +239,9 @@ struct TrainingProgress: View {
                             }.navigationTitle(display.text("running"))
                         } label: { ActivityRow(activity: activity, display: display) }
                     } else {
-                        ActivityRow(activity: activity, display: display)
+                        NavigationLink {
+                            ImportedWorkoutDetail(activity: activity, display: display, health: health)
+                        } label: { ActivityRow(activity: activity, display: display) }
                     }
                 }
             }

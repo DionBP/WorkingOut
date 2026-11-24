@@ -33,7 +33,7 @@ struct RootTabView: View {
 
     private var activities: [TrainingActivity] {
         let runs = gym.log.runs ?? []
-        return TrainingActivity.list(local: gym.log.history, runs: runs, external: health.unlinkedWorkouts(gym.log.history, runs: runs))
+        return TrainingActivity.list(local: gym.log.history, runs: runs, external: health.unlinkedWorkouts(gym.log))
     }
 
     var body: some View {
@@ -72,7 +72,7 @@ struct RootTabView: View {
                 }
             }.tabItem { Label(display.text("training"), systemImage: "dumbbell") }.tag(1)
             NavigationStack {
-                TrainingProgress(gym: gym, display: display, activities: activities, calendar: calendar)
+                TrainingProgress(gym: gym, health: health, display: display, activities: activities, calendar: calendar)
                     .refreshable { await health.refresh(reportErrors: true) }
             }.tabItem { Label(display.text("progress"), systemImage: "chart.bar") }.tag(2)
             NavigationStack { profile }

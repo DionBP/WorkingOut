@@ -54,7 +54,7 @@ struct StrengthHistoryDetail: View {
         }
         .confirmationDialog(display.text("deleteWorkoutQuestion"), isPresented: $deleting, titleVisibility: .visible) {
             Button(display.text("delete"), role: .destructive) {
-                if gym.update({ $0.history.removeAll { $0.id == id } }) { dismiss() }
+                if gym.update({ $0.deleteSession(id: id) }) { dismiss() }
             }
         }
     }
