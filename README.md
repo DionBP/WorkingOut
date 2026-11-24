@@ -14,7 +14,8 @@ Dion's native iPhone app for strength training and running. Available in Danish 
 | Running | Implemented, awaiting physical-device verification. Core Location records locally, including background updates during an active run. MapKit displays routes, and the run screen shows GPS distance, current and average pace, splits, pause and recovery. GPS gaps begin a new segment. Distance remains unavailable until a valid measurement exists. |
 | Apple Health and Garmin | Implemented, awaiting physical-device verification. Imports supported workout types, source, attached distance, energy, average heart rate and routes when available. Locally recorded activities optionally mirror to HealthKit and are reconciled by workout or sync ID. Legacy same-app logs use a narrow time match. Independent recordings from different sources may still appear separately. Direct Garmin is an external dependency. |
 | Progress | Partially implemented. Preset and custom dates, native volume and distance charts, exercise weight and estimated 1RM progression, working sets by primary muscle, longest run, and GPS distance records are available. Side-by-side period comparisons remain future work. |
-| Watch, widgets and export | Deferred. Inherited Watch and widget features still use Padel screens. Dedicated Watch training sessions, WorkingOut widgets and Live Activities, and data export remain future work. |
+| Data export | Implemented. Profile exports completed local strength sessions, GPS runs, saved programs and custom exercises as a versioned JSON document. |
+| Watch and widgets | Deferred. Inherited Watch and widget features still use Padel screens. Dedicated Watch training sessions, WorkingOut widgets and Live Activities remain future work. |
 
 No third-party exercise illustrations are included. The app uses its existing WorkingOut logo and native system symbols.
 
@@ -39,6 +40,6 @@ Foreground refresh is supported. For future background HealthKit updates, evalua
 1. Verify end-to-end on physical devices and refine exercise setup guidance, timer behavior, and analytics.
 2. Add supported HealthKit background updates, source reconciliation controls, running records and time-range comparisons.
 3. Build the native WorkingOut Watch workout experience and replace inherited widgets and Live Activities as their equivalents become ready.
-4. Add user-controlled export and evaluate direct Garmin access. See [Garmin integration feasibility](docs/garmin-integration.md).
+4. Evaluate direct Garmin access and verify local export on device. See [Garmin integration feasibility](docs/garmin-integration.md).
 
 Main deploys to TestFlight. The existing CI, signing identity verification and cleanup procedures are required. TestFlight revokes only new development certificates whose fingerprint matches a newly installed runner identity for the same team. See [legacy infrastructure reference](docs/legacy-padel-reference.md) and [development instructions](AGENTS.md).

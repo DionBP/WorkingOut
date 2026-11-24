@@ -2517,6 +2517,57 @@
         }
       }
     },
+    "export": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export training data"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksportér træningsdata"
+          }
+        }
+      }
+    },
+    "exportDetails": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The JSON file includes saved workouts, GPS routes, programs, and custom exercises from this device."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON-filen indeholder gemte træninger, GPS-ruter, programmer og egne øvelser fra denne enhed."
+          }
+        }
+      }
+    },
+    "exportError": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The training data could not be exported."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træningsdata kunne ikke eksporteres."
+          }
+        }
+      }
+    },
     "externalRun": {
       "extractionState": "manual",
       "localizations": {

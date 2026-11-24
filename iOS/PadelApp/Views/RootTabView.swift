@@ -19,6 +19,9 @@ struct RootTabView: View {
     @Environment(\.locale) private var regionalLocale
     @State private var selectedTab = 0
     @State private var trainingPath: [TrainingRoute] = []
+    @State private var export: TrainingExport?
+    @State private var exporting = false
+    @State private var exportError = false
     enum TrainingRoute: Hashable { case strength, run, programs }
 
     private var display: TrainingPresentation {
@@ -138,17 +141,33 @@ struct RootTabView: View {
                 Text(display.text("healthGuide"))
                 Button(display.text("healthConnect")) { Task { await health.connect() } }.disabled(!health.available)
                 Button(display.text("healthRefresh")) { Task { await health.refresh(reportErrors: true) } }.disabled(!health.available)
+                if !health.available { Text(display.text("healthUnavailable")).foregroundStyle(.secondary) }
                 if health.canWrite { Text(display.text("healthWriteEnabled")).foregroundStyle(.secondary) }
             }
             Section(display.text("garmin")) { Text(display.text("garminGuide")) }
             Section(display.text("privacy")) {
                 Text(display.text("privacyGuide"))
+                Button(display.text("export"), systemImage: "square.and.arrow.up") {
+                    do {
+                        export = try TrainingExport(log: gym.log)
+                        exporting = true
+                    } catch { exportError = true }
+                }.disabled(gym.inaccessible)
+                Text(display.text("exportDetails")).font(.footnote).foregroundStyle(.secondary)
                 if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
                    let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
                     LabeledContent(display.text("version"), value: "\(version) (\(build))")
                 }
             }
-        }.navigationTitle(display.text("profile"))
+        }
+        .navigationTitle(display.text("profile"))
+        .fileExporter(isPresented: $exporting, document: export, contentType: .json, defaultFilename: "WorkingOut") { result in
+            if case .failure = result { exportError = true }
+            export = nil
+        }
+        .alert(display.text("exportError"), isPresented: $exportError) {
+            Button(display.text("ok"), role: .cancel) {}
+        }
     }
 
     private var shouldTrackRun: Bool {
