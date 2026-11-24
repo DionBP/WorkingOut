@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate tennis-ball AppIcon PNGs for iOS and watchOS.
+"""Generate WorkingOut dumbbell AppIcon PNGs for iOS and watchOS.
 
 The repository keeps app icon generation as source code so PRs can stay text-only
 (GitHub's mobile PR flow does not support binary PNG changes reliably). CI runs
@@ -26,40 +26,26 @@ def blend(a: tuple[int, int, int, int], b: tuple[int, int, int, int], t: float) 
     return tuple(max(0, min(255, round(a[i] * (1 - t) + b[i] * t))) for i in range(4))  # type: ignore[return-value]
 
 
+def rounded_rect(x: float, y: float, left: float, top: float, right: float, bottom: float, radius: float) -> bool:
+    cx = min(max(x, left + radius), right - radius)
+    cy = min(max(y, top + radius), bottom - radius)
+    return (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2
+
+
 def icon_pixel(x: float, y: float) -> tuple[int, int, int, int]:
-    nx = (x - 512) / 384
-    ny = (y - 512) / 384
-    distance = math.hypot(nx, ny)
-    background = blend(
-        (31, 105, 70, 255),
-        (8, 45, 33, 255),
-        math.hypot((x - 512) / 512, (y - 512) / 512) * 0.85,
+    # White, geometric dumbbell on a near-black field.
+    background = (9, 10, 12, 255)
+    plates = (
+        (125, 405, 205, 619, 24),
+        (225, 335, 325, 689, 30),
+        (699, 335, 799, 689, 30),
+        (819, 405, 899, 619, 24),
     )
-
-    if distance > 1:
-        return background
-
-    highlight = max(0, 1 - math.hypot(nx + 0.38, ny + 0.46) / 1.15)
-    shade = max(0, nx * 0.45 + ny * 0.65)
-    color = blend((198, 221, 38, 255), (237, 243, 86, 255), 0.55 * highlight)
-    color = blend(color, (111, 164, 30, 255), 0.34 * shade)
-
-    left_seam = abs(math.hypot(x + 205, y - 512) - 560)
-    right_seam = abs(math.hypot(x - 1229, y - 512) - 560)
-    seam_width = 28
-    seam_edge = 999.0
-    if left_seam < seam_width and x < 535:
-        seam_edge = min(seam_edge, left_seam)
-    if right_seam < seam_width and x > 489:
-        seam_edge = min(seam_edge, right_seam)
-    if seam_edge != 999.0:
-        color = blend((249, 248, 223, 255), color, max(0, min(1, seam_edge / seam_width)) * 0.25)
-
-    color = blend(color, (71, 130, 25, 255), max(0, distance - 0.86) * 1.6)
-    if distance > 0.985:
-        color = blend(color, background, (distance - 0.985) / 0.015)
-    return color
-
+    if any(rounded_rect(x, y, *plate) for plate in plates):
+        return (255, 255, 255, 255)
+    if rounded_rect(x, y, 310, 466, 714, 558, 20):
+        return (255, 255, 255, 255)
+    return background
 
 def write_png(path: Path, width: int, height: int, rows: list[bytearray]) -> None:
     raw = b"".join(b"\0" + bytes(row) for row in rows)
