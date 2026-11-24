@@ -9,6 +9,12 @@ Native iOS training app for strength training and running, developed by Dion.
 - Workout duration, source, and distance/energy when supplied by HealthKit.
 - WorkingOut dumbbell branding.
 
+## Strength logging
+- Searchable 30-exercise library, custom exercises, Push/Pull/Legs and Full Body templates.
+- Editable sets, kg, reps, completion, previous set prefills, heaviest logged weight and in-app rest countdown.
+- Local strength history and volume chart, weekly workout goal, imported running pace when distance is available.
+- Local strength logs are stored on-device, separately from HealthKit; no cross-device sync or automatic Garmin set matching yet.
+
 ## Garmin
 Pair and sync the watch with Garmin Connect on iPhone. Enable Apple Health sharing for workouts and available metrics in Garmin Connect / Apple Health. Open Garmin Connect after a workout and refresh WorkingOut. Imported data varies by device and permissions. Direct Garmin API, routes, detailed sets/reps, live GPS and live heart rate are not implemented. Avoid recording the same workout twice.
 
