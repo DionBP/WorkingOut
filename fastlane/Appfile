@@ -1,2 +1,4 @@
-app_identifier("com.worsa.padel")
+# GitHub repository Variables are the deployment source of truth.
+# These values are injected into the TestFlight workflow as environment variables.
+app_identifier(ENV["APP_BUNDLE_IDENTIFIER"])
 team_id(ENV["APPLE_TEAM_ID"])
