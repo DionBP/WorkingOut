@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test-padel-kit:
-    name: Test PadelKit
+  test-shared-core:
+    name: Test shared core (legacy)
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
@@ -27,13 +27,13 @@ jobs:
           sdk_version="$(xcrun --sdk iphoneos --show-sdk-version)"
           echo "iOS SDK: $sdk_version"
           [[ "$sdk_version" == 27.* ]] || { echo "Expected iOS 27 SDK, got $sdk_version" >&2; exit 1; }
-      - name: Run PadelKit unit tests
+      - name: Run shared core unit tests (legacy)
         working-directory: Packages/PadelKit
         run: swift test
 
   deploy:
     name: Build & Upload to TestFlight
-    needs: test-padel-kit
+    needs: test-shared-core
     runs-on: xcode-27
     timeout-minutes: 60
     permissions:
