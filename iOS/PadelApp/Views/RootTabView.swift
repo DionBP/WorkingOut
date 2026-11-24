@@ -26,6 +26,21 @@ struct RootTabView: View {
             NavigationStack { SettingsView() }
                 .tabItem { Label("Indstillinger", systemImage: "gearshape") }
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack(spacing: 10) {
+                Image("WorkingOutLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+                Text("WorkingOut")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(DesignSystem.surfacePrimary)
+        }
         .tint(DesignSystem.tabBarTint)
         .toolbarBackground(DesignSystem.surfacePrimary, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
