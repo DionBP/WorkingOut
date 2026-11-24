@@ -1,11 +1,13 @@
 import SwiftUI
 import Combine
+import WorkingOutKit
 
 struct GymSet: Codable, Identifiable {
     var id = UUID()
     var kg: Double = 0
     var reps: Int = 10
     var done = false
+    var metric: TrainingSet { TrainingSet(kilograms: kg, repetitions: reps, completed: done) }
 }
 struct GymExercise: Codable, Identifiable {
     var id = UUID()
@@ -16,7 +18,7 @@ struct GymSession: Codable, Identifiable {
     var id = UUID()
     var date = Date()
     var exercises: [GymExercise]
-    var volume: Double { exercises.flatMap(\.sets).filter(\.done).reduce(0) { $0 + $1.kg * Double($1.reps) } }
+    var volume: Double { TrainingMetrics.volume(exercises.flatMap(\.sets).map(\.metric)) }
 }
 struct GymRoutine: Identifiable {
     var name: String
@@ -62,7 +64,7 @@ final class GymLog: ObservableObject {
         exercises = []; restUntil = nil
     }
     func record(for name: String) -> Double {
-        history.flatMap(\.exercises).filter { $0.name == name }.flatMap(\.sets).filter(\.done).map(\.kg).max() ?? 0
+        TrainingMetrics.heaviestWeight(history.flatMap(\.exercises).filter { $0.name == name }.flatMap(\.sets).map(\.metric)) ?? 0
     }
 }
 

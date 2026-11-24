@@ -1,6 +1,7 @@
 import SwiftUI
 import HealthKit
 import Charts
+import WorkingOutKit
 
 struct RootTabView: View {
     @StateObject private var training = TrainingStore()
@@ -33,7 +34,7 @@ struct RootTabView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Label("Weekly goal", systemImage: "target").font(.headline)
                             Text("\(week.count) / \(weeklyGoal) workouts").font(.title.bold())
-                            ProgressView(value: Double(min(week.count, weeklyGoal)), total: Double(max(1, weeklyGoal))).tint(.green)
+                            ProgressView(value: TrainingMetrics.weeklyProgress(completed: week.count, goal: weeklyGoal), total: 1).tint(.green)
                         }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22))
                         Text("Last 30 days").font(.headline)
                         Text("\(training.recent.count) workouts").font(.title2.bold())
@@ -107,8 +108,7 @@ struct RootTabView: View {
                             }
                             if workout.workoutActivityType == .running, let distance = workout.totalDistance {
                                 let km = distance.doubleValue(for: .meterUnit(with: .kilo))
-                                if km > 0 {
-                                    let pace = Int(workout.duration / km)
+                                if let pace = TrainingMetrics.runningPaceSeconds(duration: workout.duration, kilometers: km) {
                                     Text(String(format: "%d:%02d /km", pace / 60, pace % 60))
                                 }
                             }

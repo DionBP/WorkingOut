@@ -33,3 +33,6 @@ Exercise library, sets/reps/weight, training plans, running GPS and pace, charts
 
 ### CI signing cleanup
 TestFlight snapshots Apple certificate IDs and runner signing identities before the build. After success or failure it revokes only new development certificates whose fingerprint matches a newly installed local signing identity for the same team. It never revokes distribution or pre-existing certificates. If ownership cannot be established, certificates are left untouched. Hard runner termination can prevent cleanup; inspect the Apple portal if necessary. Existing API credentials are reused; no extra secrets are required.
+
+### WorkingOutKit
+Shared Swift package for training calculations: volume, heaviest completed weight, estimated 1RM, running pace and weekly goal progress. Run `swift test --package-path Packages/WorkingOutKit` locally. CI runs these tests alongside legacy PadelKit tests until the old Watch and widget code is migrated. Estimated 1RM is available in the core but not yet displayed in the app.

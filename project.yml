@@ -20,6 +20,8 @@ settings:
 packages:
   PadelKit:
     path: Packages/PadelKit
+  WorkingOutKit:
+    path: Packages/WorkingOutKit
 
 targets:
   PadelApp:
@@ -31,6 +33,7 @@ targets:
       - path: iOS/Shared
     dependencies:
       - package: PadelKit
+      - package: WorkingOutKit
       - target: PadelWatch
         embed: true
       - target: PadelWidgets

@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   test-shared-core:
-    name: Test shared core (legacy)
+    name: Test WorkingOut and shared core
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +29,10 @@ jobs:
           [[ "$sdk_version" == 27.* ]] || { echo "Expected iOS 27 SDK, got $sdk_version" >&2; exit 1; }
       - name: Run shared core unit tests (legacy)
         working-directory: Packages/PadelKit
+        run: swift test
+
+      - name: Run WorkingOutKit unit tests
+        working-directory: Packages/WorkingOutKit
         run: swift test
 
   deploy:
