@@ -1,0 +1,34 @@
+{
+  "bench-press": {
+    "name": "Bænkpres",
+    "instructions": [
+      "Læg dig på bænken med fødderne i gulvet og skulderbladene trukket let sammen.",
+      "Hold lidt bredere end skulderbredde. Sænk stangen kontrolleret mod brystet.",
+      "Pres stangen op igen med fødderne i gulvet. Brug sikkerhedsarme eller en makker ved tunge sæt."
+    ]
+  },
+  "squat": {
+    "name": "Squat",
+    "instructions": [
+      "Placér stangen stabilt på øvre ryg. Stå med hele foden i gulvet.",
+      "Bøj hofter og knæ, mens knæene følger tæernes retning.",
+      "Pres gulvet væk og rejs dig kontrolleret."
+    ]
+  },
+  "deadlift": {
+    "name": "Dødløft",
+    "instructions": [
+      "Stå med stangen over midten af foden. Bøj i hofter og knæ, og tag fat i stangen.",
+      "Spænd op, og løft stangen tæt på kroppen ved at strække knæ og hofter.",
+      "Før hofterne tilbage, og sæt stangen kontrolleret på gulvet."
+    ]
+  },
+  "push-up": {
+    "name": "Armbøjning",
+    "instructions": [
+      "Start med hænderne cirka i skulderbredde og kroppen i en lige linje.",
+      "Bøj albuerne, og sænk brystet mod gulvet.",
+      "Pres tilbage til start uden at svaje i lænden."
+    ]
+  }
+}

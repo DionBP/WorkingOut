@@ -1,0 +1,12 @@
+{
+  "revision": "f12da458a90f353a86c953f204304d5a8bd98275",
+  "exercises": {
+    "arnold-press": "arnold-press",
+    "bulgarian-split-squat": "bulgarian-split-squat",
+    "goblet-squat": "goblet-squat",
+    "hammer-curl": "hammer-curl",
+    "lat-pulldown": "lat-pulldown",
+    "plank": "plank",
+    "push-up": "push-up"
+  }
+}

@@ -10,10 +10,13 @@ struct ExerciseDefinition: Identifiable {
 
     var titleKey: String { "exercise." + id }
     var instructionKey: String { "movement." + movement }
+
+    var primaryGroups: [String] { ExerciseCatalog.imported[id]?.primary ?? [primary] }
+    var secondaryGroups: [String] { ExerciseCatalog.imported[id]?.secondary ?? (secondary == "none" ? [] : [secondary]) }
 }
 
 enum ExerciseCatalog {
-    static let entries: [ExerciseDefinition] = [
+    private static let builtin: [ExerciseDefinition] = [
         .init(id: "bench-press", primary: "chest", secondary: "triceps", equipment: "barbell", movement: "press", legacyName: "Bench Press"),
         .init(id: "incline-barbell-press", primary: "chest", secondary: "shoulders", equipment: "barbell", movement: "press", legacyName: nil),
         .init(id: "decline-bench-press", primary: "chest", secondary: "triceps", equipment: "barbell", movement: "press", legacyName: nil),
@@ -120,6 +123,12 @@ enum ExerciseCatalog {
         .init(id: "dumbbell-thruster", primary: "quads", secondary: "shoulders", equipment: "dumbbells", movement: "press", legacyName: nil),
         .init(id: "lateral-lunge", primary: "glutes", secondary: "adductors", equipment: "bodyweight", movement: "lunge", legacyName: nil),
     ]
+    static let imported = Dictionary(uniqueKeysWithValues: ExerciseSnapshot.bundled.exercises.map { ($0.id, $0) })
+    static let builtinIDs = Set(builtin.map(\.id))
+    static let entries = builtin + ExerciseSnapshot.bundled.exercises.filter { !builtinIDs.contains($0.id) }.map {
+        ExerciseDefinition(id: $0.id, primary: $0.primary.first ?? "core", secondary: $0.secondary.first ?? "none",
+                           equipment: $0.equipment, movement: "", legacyName: nil)
+    }
     static let byID = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0) })
     static let legacyIDs = Dictionary(uniqueKeysWithValues: entries.compactMap { entry in
         entry.legacyName.map { ($0, entry.id) }

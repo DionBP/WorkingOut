@@ -14,7 +14,7 @@ for path in [*TRAINING.glob("*.swift"), APP / "Views" / "RootTabView.swift", APP
     source = path.read_text(encoding="utf-8")
     keys.update(re.findall(r'\b(?:text|action|filter)\("([A-Za-z0-9]+)"', source))
     keys.update(re.findall(r'issue = "([A-Za-z0-9]+)"', source))
-    if path.name == "WorkingOutLanguage.swift":
+    if path.name in {"WorkingOutLanguage.swift", "ImportedExercises.swift"}:
         continue
     for pair in re.findall(r'\? "([A-Za-z0-9]+)" : "([A-Za-z0-9]+)"', source):
         keys.update(pair)
