@@ -29,6 +29,7 @@ private struct WatchTrainingView: View {
     @ObservedObject var workouts: WatchWorkoutStore
     @ObservedObject var health: WatchWorkoutHealth
     @State private var replacing = false
+    @State private var showingExerciseOptions = false
     @State private var confirmingDiscard = false
 
     var body: some View {
@@ -143,12 +144,13 @@ private struct WatchTrainingView: View {
             if let upcoming = workout.upcoming {
                 Text("\(text("next")) · \(upcoming.exercise.name)").font(.footnote)
             }
-            Menu(text("exerciseOptions")) {
-                Button(text("skipExercise")) { workouts.change { $0.skipExercise() } }
-                if !workouts.feed.replacements.isEmpty {
-                    Button(text("replace")) { replacing = true }
+            Button(text("exerciseOptions")) { showingExerciseOptions = true }
+                .confirmationDialog(text("exerciseOptions"), isPresented: $showingExerciseOptions) {
+                    Button(text("skipExercise")) { workouts.change { $0.skipExercise() } }
+                    if !workouts.feed.replacements.isEmpty {
+                        Button(text("replace")) { replacing = true }
+                    }
                 }
-            }
         }
     }
 

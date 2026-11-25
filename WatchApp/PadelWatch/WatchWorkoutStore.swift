@@ -34,7 +34,7 @@ final class WatchWorkoutStore: NSObject, ObservableObject {
             // First launch.
         } catch {
             inaccessible = true
-            error = true
+            self.error = true
         }
         connectivity?.delegate = self
         connectivity?.activate()
