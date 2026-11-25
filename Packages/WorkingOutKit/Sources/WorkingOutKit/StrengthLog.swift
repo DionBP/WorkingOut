@@ -4,6 +4,8 @@ public struct StrengthSet: Codable, Identifiable, Sendable {
     public var id = UUID()
     public var kg: Double
     public var reps: Int
+    /// Original target for a programmed set; `reps` stores the performed result.
+    public var plannedReps: Int?
     public var done: Bool
     public var warmup: Bool?
     public var rpe: Double?
@@ -29,6 +31,8 @@ public struct StrengthSet: Codable, Identifiable, Sendable {
 public struct StrengthExercise: Codable, Identifiable, Sendable {
     public var id = UUID()
     public var name: String
+    /// Optional user-defined label that does not change the canonical exercise identity.
+    public var customName: String?
     public var exerciseID: String?
     public var sets: [StrengthSet]
 

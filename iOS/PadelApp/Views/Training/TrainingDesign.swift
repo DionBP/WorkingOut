@@ -2,10 +2,11 @@ import SwiftUI
 import UIKit
 
 enum TrainingDesign {
-    static let background = adaptive(light: 0.96, dark: 0.055)
+    static let background = adaptive(light: 0.965, dark: 0.055)
     static let surface = adaptive(light: 1, dark: 0.115)
-    static let subdued = adaptive(light: 0.91, dark: 0.17)
+    static let subdued = adaptive(light: 0.94, dark: 0.17)
     static let route = adaptive(light: 0.12, dark: 0.93)
+    static let accent = Color(red: 1.0, green: 0.34, blue: 0.06)
     static let spacing: CGFloat = 18
 
     private static func adaptive(light: CGFloat, dark: CGFloat) -> Color {
@@ -27,6 +28,7 @@ enum TrainingDesign {
                 .frame(maxWidth: .infinity)
         }
         .background(background.ignoresSafeArea())
+        .tint(accent)
     }
 }
 
@@ -64,8 +66,8 @@ struct TrainingCTA: ButtonStyle {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 48)
-            .foregroundStyle(inverted ? Color.black : TrainingDesign.background)
-            .background(inverted ? Color.white : Color.primary, in: RoundedRectangle(cornerRadius: 12))
+            .foregroundStyle(inverted ? Color.black : Color.white)
+            .background(inverted ? Color.white : TrainingDesign.accent, in: RoundedRectangle(cornerRadius: 12))
             .opacity(enabled ? (configuration.isPressed ? 0.75 : 1) : 0.45)
     }
 }

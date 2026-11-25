@@ -29,12 +29,40 @@ struct ExerciseTargets: View {
     let display: TrainingPresentation
     @State private var pickExercise = false
 
+    private func targetSummary(_ exercise: StrengthExercise) -> String {
+        let working = exercise.sets.filter { $0.warmup != true }
+        let reps: String
+        if let progression = exercise.progression, progression.strategy == .doubleProgression {
+            reps = "\(progression.minimum)–\(progression.maximum)"
+        } else {
+            reps = working.map { String($0.reps) }.joined(separator: "/")
+        }
+        return "\(working.count) \(display.text("workSets")) · \(reps) \(display.text("reps"))"
+    }
+
     var body: some View {
         Section(display.text("exerciseLibrary")) {
             ForEach($exercises) { $exercise in
-                NavigationLink(display.name(exercise, custom: gym.log.customExercises ?? [])) {
+                NavigationLink {
                     ExerciseTargetEditor(exercise: $exercise, display: display,
                                          title: display.name(exercise, custom: gym.log.customExercises ?? []))
+                } label: {
+                    HStack(spacing: 12) {
+                        ExerciseThumbnail(id: exercise.exerciseID, display: display)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(display.name(exercise, custom: gym.log.customExercises ?? []))
+                                .font(.headline)
+                            Text(targetSummary(exercise))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(10)
+                    .background(TrainingDesign.surface, in: RoundedRectangle(cornerRadius: 14))
                 }
             }
             .onMove { exercises.move(fromOffsets: $0, toOffset: $1) }
@@ -73,6 +101,16 @@ private struct ExerciseTargetEditor: View {
 
     var body: some View {
         Form {
+            Section(display.text("exerciseName")) {
+                TextField(display.text("exerciseName"), text: Binding(
+                    get: { exercise.customName ?? title },
+                    set: { value in
+                        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                        exercise.customName = trimmed.isEmpty || trimmed == title ? nil : trimmed
+                    }
+                ))
+                .textInputAutocapitalization(.words)
+            }
             Section(display.text("progressionStrategy")) {
                 Picker(display.text("progressionStrategy"), selection: target.strategy) {
                     ForEach(ProgressionStrategy.allCases) { strategy in

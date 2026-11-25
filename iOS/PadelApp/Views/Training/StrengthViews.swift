@@ -51,19 +51,34 @@ struct StrengthEditor: View {
                     if let recommendation = gym.recommendation(for: exercise) {
                         recommendationView(recommendation, exercise: $exercise)
                     }
-                    ForEach($exercise.sets) { $set in
+                    plannedRepsHeader(exercise.sets)
+                    HStack(spacing: 10) {
+                        Text("#").frame(width: 28)
+                        Text(display.text("reps").uppercased()).frame(maxWidth: .infinity)
+                        Text(display.weight.rawValue.uppercased()).frame(maxWidth: .infinity)
+                        Image(systemName: "checkmark").frame(width: 44)
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    ForEach(exercise.sets.indices, id: \.self) { index in
+                        let set = $exercise.sets[index]
                         VStack(alignment: .leading, spacing: 8) {
-                            ViewThatFits(in: .horizontal) {
-                                HStack { fields($set); completion(exercise.id, set, rest: exercise.restSeconds) }
-                                VStack(alignment: .leading) { fields($set); completion(exercise.id, set, rest: exercise.restSeconds) }
+                            HStack(alignment: .center, spacing: 10) {
+                                Text("\(index + 1)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(TrainingDesign.accent)
+                                    .frame(width: 28, height: 44)
+                                    .background(TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 9))
+                                fields(set)
+                                completion(exercise.id, set.wrappedValue, rest: exercise.restSeconds)
                             }
                             Toggle(display.text("warmup"), isOn: Binding(
-                                get: { set.warmup == true }, set: { set.warmup = $0 }
+                                get: { set.wrappedValue.warmup == true }, set: { set.wrappedValue.warmup = $0 }
                             )).font(.caption)
                             DisclosureGroup(display.text("effort")) {
-                                TextField(display.text("rpe"), value: $set.rpe, format: .number.locale(display.locale))
+                                TextField(display.text("rpe"), value: set.rpe, format: .number.locale(display.locale))
                                     .keyboardType(.decimalPad)
-                                TextField(display.text("rir"), value: $set.rir, format: .number.locale(display.locale))
+                                TextField(display.text("rir"), value: set.rir, format: .number.locale(display.locale))
                                     .keyboardType(.numberPad)
                             }.font(.caption)
                         }
@@ -89,6 +104,21 @@ struct StrengthEditor: View {
         }
     }
 
+    private func plannedRepsHeader(_ sets: [StrengthSet]) -> some View {
+        let targets = sets.filter { $0.warmup != true }.compactMap(\.plannedReps)
+        let uniqueTargets = Array(NSOrderedSet(array: targets)) as? [Int] ?? targets
+        let value = uniqueTargets.count == 1 ? String(uniqueTargets[0]) : uniqueTargets.map(String.init).joined(separator: " / ")
+        return HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text(display.text("planned").uppercased() + ":")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(TrainingDesign.accent)
+            Text(value.isEmpty ? "—" : "\(value) \(display.text("reps"))")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
     private func recommendationView(_ result: ProgressionRecommendation, exercise: Binding<StrengthExercise>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             LabeledContent(display.text("recommended"), value: "\(display.weightText(result.kg)) × \(result.reps)")
@@ -110,18 +140,22 @@ struct StrengthEditor: View {
     }
 
     private func fields(_ set: Binding<StrengthSet>) -> some View {
-        HStack {
+        HStack(spacing: 10) {
+            TextField(display.text("reps"), value: set.reps, format: .number.locale(display.locale))
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .accessibilityLabel(display.text("reps"))
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 9))
             TextField(display.weight.rawValue, value: Binding(
                 get: { display.weight.display(set.wrappedValue.kg) },
                 set: { set.wrappedValue.kg = display.weight.canonical($0) }
             ), format: .number.locale(display.locale))
             .keyboardType(.decimalPad)
+            .multilineTextAlignment(.center)
             .accessibilityLabel(display.text("weight"))
-            Text(display.weight.rawValue).foregroundStyle(.secondary)
-            TextField(display.text("reps"), value: set.reps, format: .number.locale(display.locale))
-                .keyboardType(.numberPad)
-                .accessibilityLabel(display.text("reps"))
-            Text(display.text("reps")).foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 9))
         }
     }
 
