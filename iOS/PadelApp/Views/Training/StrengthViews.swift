@@ -60,7 +60,8 @@ struct StrengthEditor: View {
                     }
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
-                    ForEach(Array($exercise.sets.enumerated()), id: \.element.id) { index, $set in
+                    ForEach(exercise.sets.indices, id: \.self) { index in
+                        let set = $exercise.sets[index]
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(alignment: .center, spacing: 10) {
                                 Text("\(index + 1)")
@@ -69,15 +70,15 @@ struct StrengthEditor: View {
                                     .frame(width: 28, height: 44)
                                     .background(TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 9))
                                 fields($set)
-                                completion(exercise.id, set, rest: exercise.restSeconds)
+                                completion(exercise.id, set.wrappedValue, rest: exercise.restSeconds)
                             }
                             Toggle(display.text("warmup"), isOn: Binding(
-                                get: { set.warmup == true }, set: { set.warmup = $0 }
+                                get: { set.wrappedValue.warmup == true }, set: { set.wrappedValue.warmup = $0 }
                             )).font(.caption)
                             DisclosureGroup(display.text("effort")) {
-                                TextField(display.text("rpe"), value: $set.rpe, format: .number.locale(display.locale))
+                                TextField(display.text("rpe"), value: set.rpe, format: .number.locale(display.locale))
                                     .keyboardType(.decimalPad)
-                                TextField(display.text("rir"), value: $set.rir, format: .number.locale(display.locale))
+                                TextField(display.text("rir"), value: set.rir, format: .number.locale(display.locale))
                                     .keyboardType(.numberPad)
                             }.font(.caption)
                         }
