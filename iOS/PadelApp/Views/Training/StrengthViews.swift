@@ -161,6 +161,13 @@ struct ExercisePicker: View {
         NavigationStack {
             List {
                 Section {
+                    HStack {
+                        Image(systemName: "magnifyingglass").accessibilityHidden(true)
+                        TextField(display.text("searchExercises"), text: $search)
+                            .accessibilityIdentifier("workingout.exerciseSearch")
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
                     filter("muscle", prefix: "muscle.", values: Set(ExerciseCatalog.entries.flatMap { $0.primaryGroups + $0.secondaryGroups }), selection: $muscle)
                     filter("equipment", prefix: "equipment.", values: Set(ExerciseCatalog.entries.map(\.equipment)), selection: $equipment)
                 }
@@ -183,10 +190,10 @@ struct ExercisePicker: View {
                         NavigationLink(display.exerciseTitle(item)) {
                             ExerciseDetail(item: item, display: display, select: select)
                         }
+                        .accessibilityIdentifier("workingout.exercise." + item.id)
                     }
                 }
             }
-            .searchable(text: $search, prompt: Text(display.text("searchExercises")))
             .navigationTitle(display.text("exerciseLibrary"))
             .toolbar { Button(display.text("close")) { dismiss() } }
             .sheet(item: $edit) { item in

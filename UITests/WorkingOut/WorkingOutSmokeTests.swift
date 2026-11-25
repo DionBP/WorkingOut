@@ -48,12 +48,11 @@ final class WorkingOutSmokeTests: XCTestCase {
         XCTAssertTrue(add.waitForExistence(timeout: 5))
         add.tap()
 
-        let search = app.searchFields.firstMatch
-        if !search.isHittable { app.swipeDown() }
+        let search = app.textFields["workingout.exerciseSearch"]
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
         search.typeText("Air Bike")
-        let exercise = app.buttons["Air Bike"].firstMatch
+        let exercise = app.descendants(matching: .any).matching(identifier: "workingout.exercise.fedb:Air_Bike").firstMatch
         XCTAssertTrue(exercise.waitForExistence(timeout: 10))
         exercise.tap()
         XCTAssertTrue(app.navigationBars["Air Bike"].waitForExistence(timeout: 10))
