@@ -62,4 +62,35 @@ final class WorkingOutSmokeTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Air Bike"].waitForExistence(timeout: 10))
     }
 
+    @MainActor
+    func testPremiumScreens() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchEnvironment["WORKINGOUT_SCREENSHOTS"] = "1"
+        app.launchArguments += ["-workingout.language", "en", "-appAppearance", "light",
+                                "-workingout.progress.range", "0"]
+        app.launch()
+        defer { app.terminate() }
+
+        XCTAssertTrue(app.staticTexts["Pull & press"].waitForExistence(timeout: 15))
+        capture(app, named: "01-Overview")
+        app.tabBars.buttons["Training"].tap()
+        XCTAssertTrue(app.staticTexts["Saved programs"].waitForExistence(timeout: 10))
+        capture(app, named: "02-Training")
+        app.tabBars.buttons["Progress"].tap()
+        XCTAssertTrue(app.staticTexts["Monthly totals"].waitForExistence(timeout: 10))
+        capture(app, named: "03-Strength")
+        app.buttons["Running"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Running distance"].waitForExistence(timeout: 10))
+        capture(app, named: "04-Running")
+    }
+
+    @MainActor
+    private func capture(_ app: XCUIApplication, named name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
 }

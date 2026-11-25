@@ -7,10 +7,18 @@ final class GymLog: ObservableObject {
     @Published private(set) var log = StrengthLog()
     @Published private(set) var inaccessible = false
     @Published var storageError = false
-    private let url = URL.documentsDirectory.appendingPathComponent("workingout-gym-v1.json")
+    private let url: URL
     private static let restNotification = "workingout.rest"
 
     init() {
+        #if DEBUG && targetEnvironment(simulator)
+        if TrainingScreenshotFixtures.enabled {
+            url = URL.temporaryDirectory.appendingPathComponent("workingout-ui-\(UUID().uuidString).json")
+            log = TrainingScreenshotFixtures.log()
+            return
+        }
+        #endif
+        url = URL.documentsDirectory.appendingPathComponent("workingout-gym-v1.json")
         do {
             let data = try Data(contentsOf: url)
             log = try JSONDecoder().decode(StrengthLog.self, from: data)
@@ -67,7 +75,7 @@ final class GymLog: ObservableObject {
         }
     }
 
-    private func prepare(_ target: StrengthExercise) -> StrengthExercise {
+    func prepare(_ target: StrengthExercise) -> StrengthExercise {
         let previous = log.previousSets(for: target.identity)
         let previousWorking = previous.filter { $0.warmup != true }
         let required = target.sets.filter { $0.warmup != true }.count

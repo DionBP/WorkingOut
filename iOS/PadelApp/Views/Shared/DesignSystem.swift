@@ -22,8 +22,7 @@ enum DesignSystem {
     // a more extensive light appearance without changing individual screens.
     // Every surface is adaptive. Previously these were fixed night colours, so
     // selecting Light in Settings only changed system controls and left the app
-    // itself dark. The light palette is inspired by a blue padel court with the
-    // tennis-ball yellow retained as the high-energy accent.
+    // itself dark. The shared accent follows the monochrome app palette.
     static let appBackground = Color(light: 0xF2F8FB, dark: 0x050A0E)
     static let backgroundElevated = Color(light: 0xE1F1F8, dark: 0x081119)
     static let surfacePrimary = Color(light: 0xFFFFFF, dark: 0x0C161E)
@@ -31,8 +30,8 @@ enum DesignSystem {
     static let padelBlue = Color(light: 0x087EB7, dark: 0x238FC4)
     static let padelBlueLight = Color(light: 0x096D9D, dark: 0x54B7E3)
     static let padelBlueDeep = Color(light: 0x07577E, dark: 0x0C567D)
-    static let accentLime = Color(light: 0xC9E900, dark: 0xDFFF3F)
-    static let tabBarTint = Color(light: 0xC9E900, dark: 0xDFFF3F)
+    static let accentLime = Color(light: 0x202020, dark: 0xEEEEEE)
+    static let tabBarTint = Color(light: 0x202020, dark: 0xEEEEEE)
     static let textPrimary = Color(light: 0x092534, dark: 0xF7F8F9)
     static let textSecondary = Color(light: 0x496674, dark: 0xA1ACB5)
     static let borderSubtle = Color.primary.opacity(0.12)

@@ -109,7 +109,7 @@ struct RunRoute: View {
             Section(display.text("route")) {
                 Map {
                     ForEach(segments.indices, id: \.self) { index in
-                        MapPolyline(coordinates: segments[index]).stroke(TrainingDesign.lime, lineWidth: 4)
+                        MapPolyline(coordinates: segments[index]).stroke(TrainingDesign.route, lineWidth: 4)
                     }
                 }
                 .frame(height: 230)
@@ -146,7 +146,7 @@ struct ImportedWorkoutDetail: View {
                 Section(display.text("route")) {
                     Map {
                         ForEach(segments.indices, id: \.self) { index in
-                            MapPolyline(coordinates: segments[index]).stroke(TrainingDesign.lime, lineWidth: 4)
+                            MapPolyline(coordinates: segments[index]).stroke(TrainingDesign.route, lineWidth: 4)
                         }
                     }
                     .frame(height: 230)

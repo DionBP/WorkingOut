@@ -65,15 +65,3 @@ struct TrainingPresentation {
         return Duration.seconds(total).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .abbreviated).locale(locale))
     }
 }
-
-enum TrainingDesign {
-    static let lime = Color(red: 0.80, green: 0.94, blue: 0.33)
-    static let charcoal = Color(white: 0.12)
-
-    static func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12, content: content)
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
-    }
-}

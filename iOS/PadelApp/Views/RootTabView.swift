@@ -24,7 +24,7 @@ struct RootTabView: View {
     @State private var export: TrainingExport?
     @State private var exporting = false
     @State private var exportError = false
-    enum TrainingRoute: Hashable { case strength, run, programs }
+    enum TrainingRoute: Hashable { case strength, run }
 
     private var display: TrainingPresentation {
         TrainingPresentation(language: language, weight: weight, distance: distance, locale: regionalLocale)
@@ -45,24 +45,15 @@ struct RootTabView: View {
         TabView(selection: $selectedTab) {
             NavigationStack {
                 TrainingOverview(display: display, calendar: calendar, activities: activities, goal: weeklyGoal,
-                                 activeStrength: gym.log.started != nil || !gym.log.exercises.isEmpty,
-                                 activeRun: gym.log.activeRun != nil, openStrength: { open(.strength) },
-                                 openRun: { open(.run) }, openPrograms: { open(.programs) })
+                                 gym: gym, health: health, openStrength: { open(.strength) }, openRun: { open(.run) },
+                                 openPrograms: { trainingPath = []; selectedTab = 1 },
+                                 openProgress: { selectedTab = 2 }, start: startScheduled)
             }.tabItem { Label(display.text("overview"), systemImage: "house") }.tag(0)
             NavigationStack(path: $trainingPath) {
-                ScrollView {
-                    VStack(spacing: 14) {
-                        WeeklyPrograms(display: display, calendar: calendar, gym: gym) { workout in
-                            if gym.start(program: workout.program, day: workout.day, occurrence: workout) {
-                                trainingPath = [.strength]
-                            }
-                        }
-                        action(gym.log.started != nil ? "continueStrength" : "strength", icon: "dumbbell.fill", route: .strength)
-                        action(gym.log.activeRun != nil ? "continueRun" : "running", icon: "figure.run", route: .run)
-                        action("programs", icon: "list.bullet.clipboard", route: .programs)
-                    }.padding()
-                }
-                .navigationTitle(display.text("training"))
+                ProgramList(gym: gym, display: display, defaultRest: rest, start: { program, day in
+                    if gym.start(program: program, day: day) { open(.strength) }
+                }, calendar: calendar, startScheduled: startScheduled,
+                            openStrength: { open(.strength) }, openRun: { open(.run) })
                 .navigationDestination(for: TrainingRoute.self) { route in
                     switch route {
                     case .strength:
@@ -71,10 +62,7 @@ struct RootTabView: View {
                             .toolbar { EditButton().environment(\.locale, Locale(identifier: language.resolved)) }
                     case .run:
                         RunEditor(gym: gym, tracker: tracker, health: health, display: display, mirror: mirrorRun)
-                    case .programs:
-                        ProgramList(gym: gym, display: display, defaultRest: rest) { program, day in
-                            if gym.start(program: program, day: day) { trainingPath = [.strength] }
-                        }
+
                     }
                 }
             }.tabItem { Label(display.text("training"), systemImage: "dumbbell") }.tag(1)
@@ -135,6 +123,9 @@ struct RootTabView: View {
     }
 
     private func publishWearablePlan() {
+        #if DEBUG && targetEnvironment(simulator)
+        if TrainingScreenshotFixtures.enabled { return }
+        #endif
         connectivity.publish(gym.wearableFeed(display: display, calendar: calendar))
     }
 
@@ -234,10 +225,8 @@ struct RootTabView: View {
         }
     }
 
-    private func action(_ key: String, icon: String, route: TrainingRoute) -> some View {
-        Button { trainingPath.append(route) } label: {
-            TrainingAction(title: display.text(key), icon: icon)
-        }.buttonStyle(.plain)
+    private func startScheduled(_ workout: ProgramOccurrence) {
+        if gym.start(program: workout.program, day: workout.day, occurrence: workout) { open(.strength) }
     }
 
     private func open(_ route: TrainingRoute) {
