@@ -22,6 +22,7 @@ struct StrengthEditor: View {
                 Button(display.text("startStrength"), systemImage: "play.fill") { gym.start() }
             }
             Button(display.text("addExercise"), systemImage: "plus.circle") { library = true }
+                .accessibilityIdentifier("workingout.exercisePicker")
             if let until = gym.log.restUntil {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     let seconds = max(0, ceil(until.timeIntervalSince(context.date)))

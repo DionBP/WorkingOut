@@ -98,6 +98,13 @@ private struct WatchTrainingView: View {
             Text(current.exercise.name).font(.title3.bold())
             Text("\(text("set")) \(setIndex + 1) / \(current.exercise.sets.count)").font(.headline)
             if set.warmup == true { Text(text("warmup")).font(.caption) }
+            if current.targets.indices.contains(setIndex) {
+                let target = current.targets[setIndex]
+                let reps = target.warmup != true && current.exercise.progression?.strategy == .doubleProgression
+                    ? current.exercise.progression.map { "\($0.minimum)–\($0.maximum)" } ?? target.reps.formatted()
+                    : target.reps.formatted()
+                Text("\(text("target")) · \(weight(target.kg)) × \(reps)").font(.caption)
+            }
             if current.previous.indices.contains(setIndex) {
                 let previous = current.previous[setIndex]
                 Text("\(text("previous")) · \(weight(previous.kg)) × \(previous.reps)").font(.caption)

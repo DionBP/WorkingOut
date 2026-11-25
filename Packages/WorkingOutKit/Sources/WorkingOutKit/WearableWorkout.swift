@@ -3,12 +3,14 @@ import Foundation
 public struct WearableExercise: Codable, Identifiable, Sendable {
     public var id: UUID { exercise.id }
     public var exercise: StrengthExercise
+    public let targets: [StrengthSet]
     public let previous: [StrengthSet]
     public let recommendation: ProgressionRecommendation?
     public let restSeconds: Int
 
     public init(exercise: StrengthExercise, previous: [StrengthSet], recommendation: ProgressionRecommendation?, restSeconds: Int) {
         self.exercise = exercise
+        self.targets = exercise.sets
         self.previous = previous
         self.recommendation = recommendation
         self.restSeconds = min(600, max(15, restSeconds))

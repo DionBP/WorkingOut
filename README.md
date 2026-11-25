@@ -28,7 +28,7 @@ Dion's native iPhone app for strength training and running. Available in Danish 
 | Data export | Implemented. Profile exports completed local strength sessions, GPS runs, saved programs and custom exercises as a versioned JSON document. |
 | iPhone widgets | Inherited iPhone widgets and Live Activities remain scheduled for replacement. |
 
-The app uses the existing WorkingOut logo and native system symbols. Exercise illustration credits appear on the exercise detail screen.
+The app uses the existing WorkingOut logo and native system symbols. Exercise illustration credits appear on the exercise detail screen. [Exercise data by RepDB (repdb.co)](https://repdb.co)
 
 ## Apple Health and Garmin
 
