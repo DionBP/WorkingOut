@@ -90,6 +90,7 @@ final class GymLog: ObservableObject {
             let base = target.progression != nil || set.kg > 0 ? set.kg : prefill
             let weight = useLastLoad && set.warmup != true ? (previousLoad ?? base) : base
             var prepared = set
+            prepared.plannedReps = set.reps
             prepared.kg = weight
             prepared.done = false
             prepared.rpe = nil
