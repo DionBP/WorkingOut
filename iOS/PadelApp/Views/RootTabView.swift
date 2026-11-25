@@ -66,11 +66,9 @@ struct RootTabView: View {
                 .navigationDestination(for: TrainingRoute.self) { route in
                     switch route {
                     case .strength:
-                        List {
-                            StrengthEditor(gym: gym, display: display, defaultRest: rest, save: mirror)
-                        }
-                        .navigationTitle(display.text("strength"))
-                        .toolbar { EditButton().environment(\.locale, Locale(identifier: language.resolved)) }
+                        StrengthEditor(gym: gym, display: display, defaultRest: rest, save: mirror)
+                            .navigationTitle(display.text("strength"))
+                            .toolbar { EditButton().environment(\.locale, Locale(identifier: language.resolved)) }
                     case .run:
                         RunEditor(gym: gym, tracker: tracker, health: health, display: display, mirror: mirrorRun)
                     case .programs:

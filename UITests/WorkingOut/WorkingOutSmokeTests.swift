@@ -48,6 +48,10 @@ final class WorkingOutSmokeTests: XCTestCase {
         XCTAssertTrue(add.waitForExistence(timeout: 5))
         add.tap()
 
+        let picker = app.navigationBars.matching(NSPredicate(
+            format: "identifier == %@ OR identifier == %@", "Exercise library", "Øvelsesbibliotek"
+        )).firstMatch
+        XCTAssertTrue(picker.waitForExistence(timeout: 10), "An empty workout must still be able to present the exercise library.")
         let search = app.textFields["workingout.exerciseSearch"]
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
