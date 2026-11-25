@@ -7,6 +7,10 @@ enum TrainingScreenshotFixtures {
         ProcessInfo.processInfo.environment["WORKINGOUT_SCREENSHOTS"] == "1"
     }
 
+    static var screen: String? {
+        enabled ? ProcessInfo.processInfo.environment["WORKINGOUT_SCREEN"] : nil
+    }
+
     static func log(calendar: Calendar = .current, now: Date = .now) -> StrengthLog {
         func exercise(_ id: String, _ name: String, kg: Double, reps: Int, done: Bool = false) -> StrengthExercise {
             var result = StrengthExercise(name: name, exerciseID: id, sets: (0..<3).map { _ in

@@ -19,7 +19,16 @@ struct RootTabView: View {
     @EnvironmentObject private var connectivity: PhoneConnectivityManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var regionalLocale
-    @State private var selectedTab = 0
+    @State private var selectedTab: Int = {
+        #if DEBUG && targetEnvironment(simulator)
+        switch TrainingScreenshotFixtures.screen {
+        case "training": return 1
+        case "strength", "running": return 2
+        default: break
+        }
+        #endif
+        return 0
+    }()
     @State private var trainingPath: [TrainingRoute] = []
     @State private var export: TrainingExport?
     @State private var exporting = false
@@ -42,9 +51,10 @@ struct RootTabView: View {
     }
 
     var body: some View {
+        let history = activities
         TabView(selection: $selectedTab) {
             NavigationStack {
-                TrainingOverview(display: display, calendar: calendar, activities: activities, goal: weeklyGoal,
+                TrainingOverview(display: display, calendar: calendar, activities: history, goal: weeklyGoal,
                                  gym: gym, health: health, openStrength: { open(.strength) }, openRun: { open(.run) },
                                  openPrograms: { trainingPath = []; selectedTab = 1 },
                                  openProgress: { selectedTab = 2 }, start: startScheduled)
@@ -67,7 +77,7 @@ struct RootTabView: View {
                 }
             }.tabItem { Label(display.text("training"), systemImage: "dumbbell") }.tag(1)
             NavigationStack {
-                TrainingProgress(gym: gym, health: health, display: display, activities: activities, calendar: calendar)
+                TrainingProgress(gym: gym, health: health, display: display, activities: history, calendar: calendar)
                     .refreshable { await health.refresh(reportErrors: true) }
             }.tabItem { Label(display.text("progress"), systemImage: "chart.bar") }.tag(2)
             NavigationStack { profile }

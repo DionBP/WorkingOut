@@ -73,24 +73,12 @@ final class WorkingOutSmokeTests: XCTestCase {
         defer { app.terminate() }
 
         XCTAssertTrue(app.staticTexts["Pull & press"].waitForExistence(timeout: 15))
-        capture(app, named: "01-Overview")
         app.tabBars.buttons["Training"].tap()
         XCTAssertTrue(app.staticTexts["Saved programs"].waitForExistence(timeout: 10))
-        capture(app, named: "02-Training")
         app.tabBars.buttons["Progress"].tap()
         XCTAssertTrue(app.staticTexts["Monthly totals"].waitForExistence(timeout: 10))
-        capture(app, named: "03-Strength")
         app.buttons["Running"].firstMatch.tap()
         XCTAssertTrue(app.staticTexts["Running distance"].waitForExistence(timeout: 10))
-        capture(app, named: "04-Running")
-    }
-
-    @MainActor
-    private func capture(_ app: XCUIApplication, named name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
     }
 
 }

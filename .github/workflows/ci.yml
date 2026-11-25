@@ -104,6 +104,16 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY=""
 
+      - name: Capture the redesigned screens on a booted simulator
+        if: steps.simulator.outputs.id != ''
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        timeout-minutes: 12
+        run: |
+          bash scripts/capture_training_screens.sh "$SIMULATOR_ID" \
+            "$RUNNER_TEMP/WorkingOutBuild/Build/Products/Debug-iphonesimulator/PadelApp.app" \
+            "$RUNNER_TEMP/WorkingOutScreenshots"
+
       - name: Run WorkingOut UI smoke test
         if: steps.simulator.outputs.id != ''
         env:
@@ -111,7 +121,6 @@ jobs:
         timeout-minutes: 20
         run: |
           xcodebuild test-without-building \
-            -resultBundlePath "$RUNNER_TEMP/WorkingOutUI.xcresult" \
             -project Padel.xcodeproj \
             -scheme PadelApp \
             -destination "$SIMULATOR_DESTINATION" \
@@ -119,15 +128,6 @@ jobs:
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY=""
-
-      - name: Export simulator screenshots
-        if: always() && steps.simulator.outputs.id != ''
-        run: |
-          result="$RUNNER_TEMP/WorkingOutUI.xcresult"
-          if [[ -d "$result" ]]; then
-            mkdir -p "$RUNNER_TEMP/WorkingOutScreenshots"
-            xcrun xcresulttool export attachments --path "$result" --output-path "$RUNNER_TEMP/WorkingOutScreenshots"
-          fi
 
       - name: Upload simulator screenshots
         if: always() && steps.simulator.outputs.id != ''

@@ -28,7 +28,6 @@ struct TrainingOverview: View {
         let finished = Set(gym.log.history.compactMap(\.occurrenceID))
         let today = schedule.first { calendar.isDateInToday($0.date) && !finished.contains($0.id) }
         TrainingDesign.page {
-            masthead
             todayHero(today)
             if let interval { weekPanel(interval, week: week, schedule: schedule, finished: finished) }
             if !week.isEmpty { summary(week, title: display.text("weekStats")) }
@@ -38,14 +37,16 @@ struct TrainingOverview: View {
         }
         .navigationTitle(display.text("overview"))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) { masthead }
+        }
     }
 
     private var masthead: some View {
         HStack(spacing: 11) {
-            Image("WorkingOutLogo").resizable().scaledToFit().frame(width: 38, height: 38)
+            Image("WorkingOutLogo").resizable().scaledToFit().frame(width: 28, height: 28)
                 .clipShape(RoundedRectangle(cornerRadius: 9)).accessibilityHidden(true)
-            Text("WorkingOut").font(.title2.weight(.heavy)).accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 0)
+            Text("WorkingOut").font(.headline.weight(.heavy)).accessibilityAddTraits(.isHeader)
         }
     }
 
@@ -63,6 +64,7 @@ struct TrainingOverview: View {
             } else {
                 primary(display.text("startStrength"), icon: "play.fill", action: openStrength)
                 Button(display.text("browsePrograms"), action: openPrograms)
+                    .buttonStyle(.plain)
                     .font(.subheadline.weight(.semibold)).frame(minHeight: 44)
             }
         }
@@ -100,15 +102,12 @@ struct TrainingOverview: View {
                     .accessibilityValue("\(week.count) / \(goal)")
             }
             ProgressView(value: TrainingMetrics.weeklyProgress(completed: week.count, goal: goal)).tint(.primary)
-            ScrollView(.horizontal) {
-                HStack(spacing: 4) {
-                    ForEach(0..<7) { offset in
-                        if let day = calendar.date(byAdding: .day, value: offset, to: interval.start) {
-                            dayButton(day, selected: selected, week: week, schedule: schedule)
-                        }
-                    }
-                }
-            }.scrollIndicators(.hidden)
+            ViewThatFits(in: .horizontal) {
+                calendarDays(interval, selected: selected, week: week, schedule: schedule)
+                ScrollView(.horizontal) {
+                    calendarDays(interval, selected: selected, week: week, schedule: schedule)
+                }.scrollIndicators(.hidden)
+            }
             Divider()
             Text(selected.formatted(.dateTime.weekday(.wide).day().month().locale(display.locale)))
                 .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
@@ -126,6 +125,17 @@ struct TrainingOverview: View {
         }.modifier(TrainingPanel())
     }
 
+    private func calendarDays(_ interval: DateInterval, selected: Date, week: [TrainingActivity],
+                              schedule: [ProgramOccurrence]) -> some View {
+        HStack(spacing: 4) {
+            ForEach(0..<7) { offset in
+                if let day = calendar.date(byAdding: .day, value: offset, to: interval.start) {
+                    dayButton(day, selected: selected, week: week, schedule: schedule)
+                }
+            }
+        }
+    }
+
     private func dayButton(_ date: Date, selected: Date, week: [TrainingActivity],
                            schedule: [ProgramOccurrence]) -> some View {
         let isSelected = calendar.isDate(date, inSameDayAs: selected)
@@ -139,7 +149,7 @@ struct TrainingOverview: View {
                 Image(systemName: worked ? "checkmark" : (planned ? "circle.fill" : "minus"))
                     .font(.system(size: 7, weight: .semibold)).accessibilityHidden(true)
             }
-            .frame(minWidth: max(38, dayWidth), minHeight: 56)
+            .frame(minWidth: max(38, dayWidth), maxWidth: .infinity, minHeight: 56)
             .foregroundStyle(isSelected ? TrainingDesign.background : Color.primary)
             .background(isSelected ? Color.primary : TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 11))
         }

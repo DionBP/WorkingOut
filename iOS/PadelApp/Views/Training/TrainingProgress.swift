@@ -12,7 +12,13 @@ struct TrainingProgress: View {
     @AppStorage("workingout.progress.range") private var range = 0
     @AppStorage("workingout.progress.customStart") private var customStart = 0.0
     @AppStorage("workingout.progress.customEnd") private var customEnd = 0.0
-    @State private var running = false
+    @State private var running: Bool = {
+        #if DEBUG && targetEnvironment(simulator)
+        return TrainingScreenshotFixtures.screen == "running"
+        #else
+        return false
+        #endif
+    }()
     @State private var exerciseID = ""
 
     private var startDate: Date {
@@ -79,6 +85,8 @@ struct TrainingProgress: View {
                     }
                 }
                 .pickerStyle(.menu)
+                .labelsHidden()
+                .accessibilityLabel(display.text("dateRange"))
                 .accessibilityIdentifier("workingout.progress.period")
             }
             if range == -1 {

@@ -48,6 +48,7 @@ struct ProgramList: View {
                     programLink(program, saved: true)
                 }
             }
+            quickActions
             WeeklyPrograms(display: display, calendar: calendar, gym: gym, start: startScheduled)
             VStack(alignment: .leading, spacing: 12) {
                 TrainingDesign.section(display.text("templates"))
@@ -60,15 +61,7 @@ struct ProgramList: View {
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            VStack(alignment: .leading, spacing: 8) {
-                if gym.log.started == nil && gym.log.exercises.isEmpty {
-                    Button(display.text("startStrength"), systemImage: "dumbbell.fill", action: openStrength)
-                        .frame(minHeight: 44)
-                }
-                Button(display.text(gym.log.activeRun == nil ? "running" : "continueRun"), systemImage: "figure.run", action: openRun)
-                    .frame(minHeight: 44)
-            }
-            .font(.headline)
+
         }
         .navigationTitle(display.text("training"))
         .sheet(item: $editing) { program in
@@ -81,6 +74,24 @@ struct ProgramList: View {
                 gym.update { $0.programs?.removeAll { $0.id == program.id } }
             }
         }
+    }
+
+    private var quickActions: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { quickActionButtons }
+            VStack(alignment: .leading, spacing: 6) { quickActionButtons }
+        }
+        .font(.subheadline.weight(.semibold))
+    }
+
+    @ViewBuilder private var quickActionButtons: some View {
+        if gym.log.started == nil && gym.log.exercises.isEmpty {
+            Button(display.text("startStrength"), systemImage: "dumbbell.fill", action: openStrength)
+                .frame(minHeight: 44)
+        }
+        Button(display.text(gym.log.activeRun == nil ? "running" : "continueRun"),
+               systemImage: "figure.run", action: openRun)
+            .frame(minHeight: 44)
     }
 
     private func template(_ key: String, ids: [String]) -> StrengthProgram {
