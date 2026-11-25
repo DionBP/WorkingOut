@@ -50,6 +50,11 @@ struct RootTabView: View {
             NavigationStack(path: $trainingPath) {
                 ScrollView {
                     VStack(spacing: 14) {
+                        WeeklyPrograms(display: display, calendar: calendar, gym: gym) { workout in
+                            if gym.start(program: workout.program, day: workout.day, occurrence: workout) {
+                                trainingPath = [.strength]
+                            }
+                        }
                         action(gym.log.started != nil ? "continueStrength" : "strength", icon: "dumbbell.fill", route: .strength)
                         action(gym.log.activeRun != nil ? "continueRun" : "running", icon: "figure.run", route: .run)
                         action("programs", icon: "list.bullet.clipboard", route: .programs)
@@ -67,9 +72,8 @@ struct RootTabView: View {
                     case .run:
                         RunEditor(gym: gym, tracker: tracker, health: health, display: display, mirror: mirrorRun)
                     case .programs:
-                        ProgramList(gym: gym, display: display, defaultRest: rest) { program in
-                            gym.start(program: program)
-                            if gym.log.started != nil { trainingPath = [.strength] }
+                        ProgramList(gym: gym, display: display, defaultRest: rest) { program, day in
+                            if gym.start(program: program, day: day) { trainingPath = [.strength] }
                         }
                     }
                 }

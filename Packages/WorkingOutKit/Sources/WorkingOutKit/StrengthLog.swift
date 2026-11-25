@@ -6,12 +6,19 @@ public struct StrengthSet: Codable, Identifiable, Sendable {
     public var reps: Int
     public var done: Bool
     public var warmup: Bool?
+    public var rpe: Double?
+    public var rir: Int?
 
     public init(kg: Double = 0, reps: Int = 10, done: Bool = false, warmup: Bool? = nil) {
         self.kg = kg
         self.reps = reps
         self.done = done
         self.warmup = warmup
+    }
+
+    public var hasValidEffort: Bool {
+        (rpe.map { $0.isFinite && (1...10).contains($0) } ?? true) &&
+            (rir.map { (0...20).contains($0) } ?? true)
     }
 
     public var metric: TrainingSet {
@@ -31,6 +38,10 @@ public struct StrengthExercise: Codable, Identifiable, Sendable {
         self.sets = sets
     }
 
+    public var progression: ProgressionTarget?
+    public var plannedWorkingSets: Int?
+    public var restSeconds: Int?
+
     public var identity: String { exerciseID ?? "legacy:" + name }
 }
 
@@ -42,6 +53,7 @@ public struct StrengthSession: Codable, Identifiable, Sendable {
     public var notes: String?
     public var healthID: UUID?
     public var endDate: Date?
+    public var occurrenceID: String?
 
     public init(date: Date = Date(), exercises: [StrengthExercise], duration: TimeInterval? = nil, notes: String? = nil) {
         self.date = date
@@ -73,13 +85,23 @@ public struct StrengthProgram: Codable, Identifiable, Sendable {
     public var exercises: [StrengthExercise] = []
     public var restSeconds = 90
     public var notes = ""
+    public var days: [TrainingDay]?
 
     public init() {}
 
     public var isValid: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            (15...600).contains(restSeconds) && !exercises.isEmpty &&
-            exercises.allSatisfy { !$0.sets.isEmpty && $0.sets.allSatisfy { $0.reps > 0 && $0.kg.isFinite && $0.kg >= 0 } }
+            (15...600).contains(restSeconds) &&
+            ((days?.isEmpty == false && days?.allSatisfy(\.isValid) == true) || (days?.isEmpty != false && Self.validExercises(exercises)))
+    }
+
+    static func validExercises(_ exercises: [StrengthExercise]) -> Bool {
+        !exercises.isEmpty && exercises.allSatisfy { exercise in
+            !exercise.sets.isEmpty && exercise.sets.contains { $0.warmup != true } &&
+                (exercise.progression?.isValid ?? true) &&
+                (exercise.restSeconds.map { (15...600).contains($0) } ?? true) &&
+                exercise.sets.allSatisfy { $0.reps > 0 && $0.kg.isFinite && $0.kg >= 0 }
+        }
     }
 }
 
@@ -89,6 +111,9 @@ public struct StrengthLog: Codable, Sendable {
     public var programs: [StrengthProgram]?
     public var runs: [RunRecord]?
     public var activeRun: RunRecord?
+    public var scheduleOverrides: [ScheduledWorkout]?
+    public var activeOccurrenceID: String?
+    public var activeProgramID: UUID?
     public var hiddenHealthIDs: [UUID]?
     public var hiddenSyncIDs: [UUID]?
     public var customExercises: [CustomExercise]?
@@ -145,6 +170,7 @@ public struct StrengthLog: Codable, Sendable {
         guard !completed.isEmpty else { return false }
         var session = StrengthSession(date: started ?? date, exercises: completed, duration: elapsed(at: date), notes: notes)
         session.endDate = date
+        session.occurrenceID = activeOccurrenceID
         history.append(session)
         discard()
         return true
@@ -157,7 +183,15 @@ public struct StrengthLog: Codable, Sendable {
         pausedSeconds = nil
         restUntil = nil
         activeRestSeconds = nil
+        activeOccurrenceID = nil
+        activeProgramID = nil
         notes = nil
+    }
+
+    public func progressionHistory(for identity: String) -> [StrengthExercise] {
+        history.sorted { $0.date > $1.date }.compactMap { session in
+            session.exercises.first { $0.identity == identity }
+        }
     }
 
     public func previousSets(for identity: String) -> [StrengthSet] {

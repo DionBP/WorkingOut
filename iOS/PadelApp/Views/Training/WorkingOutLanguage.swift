@@ -29,10 +29,27 @@ struct TrainingPresentation {
 
     func name(_ exercise: StrengthExercise, custom: [CustomExercise]) -> String {
         if let id = exercise.exerciseID {
-            if let definition = ExerciseCatalog.byID[id] { return text(definition.titleKey) }
+            if let definition = ExerciseCatalog.byID[id] { return exerciseTitle(definition) }
             if let definition = custom.first(where: { $0.id == id }) { return definition.name }
         }
         return exercise.name
+    }
+
+    func exerciseTitle(_ definition: ExerciseDefinition) -> String {
+        if ExerciseCatalog.builtinIDs.contains(definition.id) { return text(definition.titleKey) }
+        guard let imported = ExerciseCatalog.imported[definition.id] else { return definition.id }
+        return language.resolved == "da" ? (imported.danish?.name ?? imported.name) : imported.name
+    }
+
+    func exerciseMatches(_ definition: ExerciseDefinition, search: String) -> Bool {
+        guard !search.isEmpty else { return true }
+        let imported = ExerciseCatalog.imported[definition.id]
+        let names: [String?] = [
+            exerciseTitle(definition), imported?.name, imported?.danish?.name,
+            ExerciseCatalog.builtinIDs.contains(definition.id) ? WorkingOutLanguage.da.text(definition.titleKey) : nil,
+            ExerciseCatalog.builtinIDs.contains(definition.id) ? WorkingOutLanguage.en.text(definition.titleKey) : nil
+        ]
+        return names.compactMap { $0 }.contains { $0.localizedStandardContains(search) }
     }
 
     func number(_ value: Double, precision: Int = 1) -> String {

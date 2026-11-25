@@ -5,7 +5,7 @@ struct ProgramList: View {
     @ObservedObject var gym: GymLog
     var display: TrainingPresentation
     var defaultRest: Int
-    var start: (StrengthProgram) -> Void
+    var start: (StrengthProgram, TrainingDay?) -> Void
     @State private var editing: StrengthProgram?
     @State private var deleting: StrengthProgram?
 
@@ -65,11 +65,29 @@ struct ProgramList: View {
     private func programLink(_ program: StrengthProgram) -> some View {
         NavigationLink(program.name) {
             List {
-                Button(display.text("startProgram"), systemImage: "play.fill") { start(program) }
-                    .disabled(gym.log.started != nil || !gym.log.exercises.isEmpty)
+                if let days = program.days, !days.isEmpty {
+                    Section(display.text("trainingDays")) {
+                        ForEach(days.sorted { $0.weekday < $1.weekday }) { day in
+                            NavigationLink(day.name) {
+                                List {
+                                    Button(display.text("startProgram"), systemImage: "play.fill") { start(program, day) }
+                                        .disabled(gym.log.started != nil || !gym.log.exercises.isEmpty)
+                                    ForEach(day.exercises) { exercise in
+                                        Text(display.name(exercise, custom: gym.log.customExercises ?? []))
+                                    }
+                                }.navigationTitle(day.name)
+                            }
+                        }
+                    }
+                } else {
+                    Button(display.text("startProgram"), systemImage: "play.fill") { start(program, nil) }
+                        .disabled(gym.log.started != nil || !gym.log.exercises.isEmpty)
+                }
                 if !program.notes.isEmpty { Text(program.notes) }
-                ForEach(program.exercises) { exercise in
-                    Text(display.name(exercise, custom: gym.log.customExercises ?? []))
+                if program.days?.isEmpty != false {
+                    ForEach(program.exercises) { exercise in
+                        Text(display.name(exercise, custom: gym.log.customExercises ?? []))
+                    }
                 }
                 Button(display.text("duplicate"), systemImage: "plus.square.on.square") {
                     var copy = program
@@ -90,7 +108,6 @@ struct ProgramEditor: View {
     @State var program: StrengthProgram
     @ObservedObject var gym: GymLog
     let display: TrainingPresentation
-    @State private var pickExercise = false
 
     var body: some View {
         NavigationStack {
@@ -99,23 +116,25 @@ struct ProgramEditor: View {
                 TextField(display.text("notes"), text: $program.notes, axis: .vertical)
                 Stepper("\(display.text("restTimer")) · \(display.duration(Double(program.restSeconds)))",
                         value: $program.restSeconds, in: 15...600, step: 15)
-                ForEach($program.exercises) { $exercise in
-                    Section(display.name(exercise, custom: gym.log.customExercises ?? [])) {
-                        ForEach($exercise.sets) { $set in
-                            HStack {
-                                Text(display.text("targetReps"))
-                                TextField(display.text("targetReps"), value: $set.reps, format: .number.locale(display.locale))
-                                    .keyboardType(.numberPad)
-                                    .multilineTextAlignment(.trailing)
+                if program.days?.isEmpty != false {
+                    ExerciseTargets(exercises: $program.exercises, gym: gym, display: display)
+                }
+                Section(display.text("trainingDays")) {
+                    ForEach(days) { $day in
+                        NavigationLink(day.name.isEmpty ? display.text("trainingDay") : day.name) {
+                            TrainingDayEditor(day: $day, gym: gym, display: display)
+                        }
+                        .swipeActions {
+                            Button(display.text("duplicateDay")) {
+                                var copy = day
+                                copy.id = UUID()
+                                days.wrappedValue.append(copy)
                             }
                         }
-                        .onDelete { exercise.sets.remove(atOffsets: $0) }
-                        Button(display.text("addSet")) { exercise.sets.append(StrengthSet()) }
                     }
+                    .onDelete { days.wrappedValue.remove(atOffsets: $0) }
+                    Button(display.text("addDay"), systemImage: "plus.circle") { addDay() }
                 }
-                .onMove { program.exercises.move(fromOffsets: $0, toOffset: $1) }
-                .onDelete { program.exercises.remove(atOffsets: $0) }
-                Button(display.text("addExercise"), systemImage: "plus.circle") { pickExercise = true }
             }
             .navigationTitle(display.text("programs"))
             .toolbar {
@@ -125,13 +144,23 @@ struct ProgramEditor: View {
                     Button(display.text("save")) { save() }.disabled(!program.isValid)
                 }
             }
-            .sheet(isPresented: $pickExercise) {
-                ExercisePicker(gym: gym, display: display) { exercise in
-                    program.exercises.append(exercise)
-                    pickExercise = false
-                }
-            }
+
         }
+    }
+
+    private var days: Binding<[TrainingDay]> {
+        Binding(get: { program.days ?? [] }, set: { program.days = $0 })
+    }
+
+    private func addDay() {
+        var day = TrainingDay()
+        day.name = display.text("trainingDay")
+        day.restSeconds = program.restSeconds
+        if days.wrappedValue.isEmpty && !program.exercises.isEmpty {
+            day.exercises = program.exercises
+            day.name = display.text("legacyProgramDay")
+        }
+        days.wrappedValue.append(day)
     }
 
     private func save() {

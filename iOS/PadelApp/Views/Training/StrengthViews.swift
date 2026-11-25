@@ -46,15 +46,24 @@ struct StrengthEditor: View {
                 if let last = previous.last {
                     LabeledContent(display.text("previous"), value: "\(display.weightText(last.kg)) × \(last.reps)")
                 }
+                if let recommendation = gym.recommendation(for: exercise) {
+                    recommendationView(recommendation, exercise: $exercise)
+                }
                 ForEach($exercise.sets) { $set in
                     VStack(alignment: .leading, spacing: 8) {
                         ViewThatFits(in: .horizontal) {
-                            HStack { fields($set); completion(exercise.id, set) }
-                            VStack(alignment: .leading) { fields($set); completion(exercise.id, set) }
+                            HStack { fields($set); completion(exercise.id, set, rest: exercise.restSeconds) }
+                            VStack(alignment: .leading) { fields($set); completion(exercise.id, set, rest: exercise.restSeconds) }
                         }
                         Toggle(display.text("warmup"), isOn: Binding(
                             get: { set.warmup == true }, set: { set.warmup = $0 }
                         )).font(.caption)
+                        DisclosureGroup(display.text("effort")) {
+                            TextField(display.text("rpe"), value: $set.rpe, format: .number.locale(display.locale))
+                                .keyboardType(.decimalPad)
+                            TextField(display.text("rir"), value: $set.rir, format: .number.locale(display.locale))
+                                .keyboardType(.numberPad)
+                        }.font(.caption)
                     }
                 }
                 .onDelete { exercise.sets.remove(atOffsets: $0) }
@@ -77,6 +86,26 @@ struct StrengthEditor: View {
         }
     }
 
+    private func recommendationView(_ result: ProgressionRecommendation, exercise: Binding<StrengthExercise>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            LabeledContent(display.text("recommended"), value: "\(display.weightText(result.kg)) × \(result.reps)")
+            Text(display.text("reason." + result.reason.rawValue)).font(.footnote).foregroundStyle(.secondary)
+            if let estimate = result.estimatedMaxKg {
+                LabeledContent(display.text("estimatedMax"), value: display.weightText(estimate))
+            }
+            if result.reason != .insufficient && result.reason != .manual {
+                Button(display.text("applySuggestion")) {
+                    var sets = exercise.wrappedValue.sets
+                    for index in sets.indices where !sets[index].done && sets[index].warmup != true {
+                        sets[index].kg = result.kg
+                        sets[index].reps = result.reps
+                    }
+                    exercise.wrappedValue.sets = sets
+                }.buttonStyle(.borderless)
+            }
+        }
+    }
+
     private func fields(_ set: Binding<StrengthSet>) -> some View {
         HStack {
             TextField(display.weight.rawValue, value: Binding(
@@ -93,9 +122,9 @@ struct StrengthEditor: View {
         }
     }
 
-    private func completion(_ exercise: UUID, _ set: StrengthSet) -> some View {
+    private func completion(_ exercise: UUID, _ set: StrengthSet, rest: Int?) -> some View {
         Button {
-            gym.complete(exerciseID: exercise, setID: set.id, seconds: gym.log.activeRestSeconds ?? defaultRest,
+            gym.complete(exerciseID: exercise, setID: set.id, seconds: rest ?? gym.log.activeRestSeconds ?? defaultRest,
                          message: display.text("restDone"))
         } label: {
             Image(systemName: set.done ? "checkmark.circle.fill" : "circle")
@@ -105,7 +134,7 @@ struct StrengthEditor: View {
         .buttonStyle(.borderless)
         .accessibilityLabel(display.text(set.done ? "undoSet" : "completeSet"))
         .sensoryFeedback(.selection, trigger: set.done)
-        .disabled(!set.kg.isFinite || set.kg < 0 || set.reps <= 0)
+        .disabled(!set.kg.isFinite || set.kg < 0 || set.reps <= 0 || !set.hasValidEffort)
     }
 }
 
@@ -121,17 +150,17 @@ struct ExercisePicker: View {
 
     private var results: [ExerciseDefinition] {
         ExerciseCatalog.entries.filter { entry in
-            (muscle.isEmpty || entry.primary == muscle || entry.secondary == muscle) &&
+            (muscle.isEmpty || entry.primaryGroups.contains(muscle) || entry.secondaryGroups.contains(muscle)) &&
                 (equipment.isEmpty || entry.equipment == equipment) &&
-                (search.isEmpty || display.text(entry.titleKey).localizedCaseInsensitiveContains(search))
-        }.sorted { display.text($0.titleKey).localizedStandardCompare(display.text($1.titleKey)) == .orderedAscending }
+                display.exerciseMatches(entry, search: search)
+        }.sorted { display.exerciseTitle($0).localizedStandardCompare(display.exerciseTitle($1)) == .orderedAscending }
     }
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    filter("muscle", prefix: "muscle.", values: Set(ExerciseCatalog.entries.map(\.primary)), selection: $muscle)
+                    filter("muscle", prefix: "muscle.", values: Set(ExerciseCatalog.entries.flatMap { $0.primaryGroups + $0.secondaryGroups }), selection: $muscle)
                     filter("equipment", prefix: "equipment.", values: Set(ExerciseCatalog.entries.map(\.equipment)), selection: $equipment)
                 }
                 Section(display.text("customExercises")) {
@@ -150,16 +179,8 @@ struct ExercisePicker: View {
                 }
                 Section(display.text("exerciseLibrary")) {
                     ForEach(results) { item in
-                        NavigationLink(display.text(item.titleKey)) {
-                            Form {
-                                LabeledContent(display.text("primaryMuscle"), value: display.text("muscle." + item.primary))
-                                if item.secondary != "none" {
-                                    LabeledContent(display.text("secondaryMuscle"), value: display.text("muscle." + item.secondary))
-                                }
-                                LabeledContent(display.text("equipment"), value: display.text("equipment." + item.equipment))
-                                Section(display.text("instructions")) { Text(display.text(item.instructionKey)) }
-                                Button(display.text("addExercise")) { select(.init(name: display.text(item.titleKey), exerciseID: item.id)) }
-                            }.navigationTitle(display.text(item.titleKey))
+                        NavigationLink(display.exerciseTitle(item)) {
+                            ExerciseDetail(item: item, display: display, select: select)
                         }
                     }
                 }

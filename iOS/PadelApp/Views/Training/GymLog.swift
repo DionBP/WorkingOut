@@ -45,24 +45,63 @@ final class GymLog: ObservableObject {
         }
     }
 
-    func start(program: StrengthProgram? = nil) {
-        guard log.started == nil, program == nil || log.exercises.isEmpty else { return }
-        update { log in
+    @discardableResult
+    func start(program: StrengthProgram? = nil, day: TrainingDay? = nil, occurrence: ProgramOccurrence? = nil) -> Bool {
+        guard log.started == nil, program == nil || log.exercises.isEmpty else { return false }
+        if let occurrence, log.history.contains(where: { $0.occurrenceID == occurrence.id }) { return false }
+        return update { log in
             log.started = .now
             if let program {
                 log.notes = program.notes
-                log.activeRestSeconds = program.restSeconds
-                log.exercises = program.exercises.map { target in
+                log.activeProgramID = program.id
+                log.activeOccurrenceID = occurrence?.id
+                log.activeRestSeconds = day?.restSeconds ?? program.restSeconds
+                log.exercises = (day?.exercises ?? program.exercises).map { target in
                     let previous = log.previousSets(for: target.identity)
-                    let sets = target.sets.enumerated().map { index, set in
-                        StrengthSet(kg: set.kg > 0 ? set.kg : (previous.indices.contains(index) ? previous[index].kg : 0),
-                                    reps: set.reps, warmup: set.warmup)
+                    let previousWorking = previous.filter { $0.warmup != true }
+                    let required = target.sets.filter { $0.warmup != true }.count
+                    let previousLoad = previousWorking.first?.kg
+                    let useLastLoad = target.progression?.strategy == .doubleProgression &&
+                        target.progression?.useLastLoad == true && previousWorking.count == required &&
+                        previousWorking.allSatisfy { $0.kg == previousLoad }
+                    var exercise = target
+                    exercise.id = UUID()
+                    exercise.plannedWorkingSets = required
+                    exercise.sets = target.sets.enumerated().map { index, set in
+                        let prefill = previous.indices.contains(index) ? previous[index].kg : 0
+                        let base = target.progression != nil || set.kg > 0 ? set.kg : prefill
+                        let weight = useLastLoad && set.warmup != true ? (previousLoad ?? base) : base
+                        return StrengthSet(kg: weight, reps: set.reps, warmup: set.warmup)
                     }
-                    return StrengthExercise(name: target.name, exerciseID: target.exerciseID, sets: sets)
+                    return exercise
                 }
             }
         }
     }
+
+    func recommendation(for exercise: StrengthExercise) -> ProgressionRecommendation? {
+        guard let target = exercise.progression,
+              let next = exercise.sets.first(where: { !$0.done && $0.warmup != true }) else { return nil }
+        return DoubleProgression.recommend(target: target,
+            workingSets: exercise.plannedWorkingSets ?? exercise.sets.filter { $0.warmup != true }.count,
+            kg: next.kg, equipment: ExerciseCatalog.byID[exercise.identity]?.equipment,
+            history: log.progressionHistory(for: exercise.identity))
+    }
+
+    func changeSchedule(_ workout: ProgramOccurrence, date: Date, skip: Bool) {
+        update { log in
+            var overrides = log.scheduleOverrides ?? []
+            overrides.removeAll {
+                $0.programID == workout.program.id && $0.dayID == workout.day.id && $0.originalDay == workout.originalDay
+            }
+            var change = ScheduledWorkout(programID: workout.program.id, dayID: workout.day.id, date: workout.originalDate, originalDay: workout.originalDay)
+            change.date = date
+            change.skipped = skip
+            overrides.append(change)
+            log.scheduleOverrides = overrides
+        }
+    }
+
 
     func add(_ exercise: StrengthExercise) {
         let previous = log.previousSets(for: exercise.identity)
@@ -100,7 +139,7 @@ final class GymLog: ObservableObject {
               let exercise = log.exercises.firstIndex(where: { $0.id == exerciseID }),
               let set = log.exercises[exercise].sets.firstIndex(where: { $0.id == setID }) else { return }
         let value = log.exercises[exercise].sets[set]
-        guard value.kg.isFinite, value.kg >= 0, value.reps > 0 else { return }
+        guard value.kg.isFinite, value.kg >= 0, value.reps > 0, value.hasValidEffort else { return }
         guard update({ log in
             log.exercises[exercise].sets[set].done.toggle()
             if !value.done {
