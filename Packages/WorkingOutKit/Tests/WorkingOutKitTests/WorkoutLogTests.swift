@@ -78,10 +78,14 @@ final class WorkoutLogTests: XCTestCase {
         program.exercises[0].sets[0].reps = 0
         XCTAssertFalse(program.isValid)
         program.exercises[0].sets[0].reps = 3
+        program.exercises[0].sets[0].plannedReps = 10
+        program.exercises[0].customName = "Incline Press"
         let restored = try JSONDecoder().decode(StrengthProgram.self, from: JSONEncoder().encode(program))
         XCTAssertTrue(restored.isValid)
         XCTAssertEqual(restored.id, program.id)
         XCTAssertEqual(restored.name, program.name)
+        XCTAssertEqual(restored.exercises[0].customName, "Incline Press")
+        XCTAssertEqual(restored.exercises[0].sets[0].plannedReps, 10)
     }
 
     func testUnitConversionsPreserveCanonicalValues() {

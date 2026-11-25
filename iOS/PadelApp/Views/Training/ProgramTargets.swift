@@ -57,7 +57,8 @@ struct ExerciseTargets: View {
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
-                    .padding(.vertical, 4)
+                    .padding(10)
+                    .background(TrainingDesign.surface, in: RoundedRectangle(cornerRadius: 14))
                 }
             }
             .onMove { exercises.move(fromOffsets: $0, toOffset: $1) }
