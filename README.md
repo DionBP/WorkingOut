@@ -2,6 +2,12 @@
 
 Dion's native iPhone app for strength training and running. Available in Danish and English, with four tabs · Overview, Training, Progress, and Profile.
 
+## Premium training interface
+
+Overview prioritizes today's session and links each calendar day to planned and completed workouts. Training opens directly to programs and upcoming sessions with exercise media, previous performance, and load suggestions. Progress opens on All Time, remembers the selected period, and separates strength from running. Historic charts aggregate into calendar buckets and link records back to their source workouts. HealthKit refreshes the complete available strength and running history before the selected period is applied on screen.
+
+CI captures Overview, Training, Strength Progress, and Running Progress from an isolated simulator fixture. The fixture is available only in debug simulator builds. See the simulator screenshot artifact on the CI run.
+
 ## Phase 3
 
 | Area | Status and scope |

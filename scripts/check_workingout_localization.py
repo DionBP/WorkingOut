@@ -38,6 +38,7 @@ for name, members in re.findall(r'\("([^"]+)", \[([^]]+)\]\)', template_source):
 keys.update(f"language.{key}" for key in ["system", "da", "en"])
 keys.update(f"appearance.{key}" for key in ["system", "light", "dark"])
 keys.update(f"weekday.{day}" for day in range(1, 8))
+keys.update(f"bucket.{period}" for period in ["day", "week", "month", "year"])
 keys.update(f"range.{day}" for day in [-1, 0, 7, 30, 90, 365])
 assert keys <= catalog.keys(), f"Missing keys: {', '.join(sorted(keys - catalog.keys()))}"
 

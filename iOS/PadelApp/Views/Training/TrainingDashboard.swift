@@ -1,6 +1,5 @@
 import SwiftUI
 import HealthKit
-import Charts
 import WorkingOutKit
 
 struct TrainingActivity: Identifiable {
@@ -36,123 +35,6 @@ struct TrainingActivity: Identifiable {
     }
 }
 
-struct TrainingAction: View {
-    var title: String
-    var icon: String
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon).foregroundStyle(TrainingDesign.lime).accessibilityHidden(true)
-            Text(title).font(.title3.bold())
-            Spacer()
-            Image(systemName: "chevron.right").font(.footnote).accessibilityHidden(true)
-        }
-        .foregroundStyle(.white)
-        .padding(20)
-        .frame(minHeight: 66)
-        .background(TrainingDesign.charcoal, in: RoundedRectangle(cornerRadius: 22))
-    }
-}
-
-struct TrainingOverview: View {
-    var display: TrainingPresentation
-    var calendar: Calendar
-    var activities: [TrainingActivity]
-    var goal: Int
-    var activeStrength: Bool
-    var activeRun: Bool
-    var openStrength: () -> Void
-    var openRun: () -> Void
-    var openPrograms: () -> Void
-
-    var body: some View {
-        let interval = calendar.dateInterval(of: .weekOfYear, for: .now)
-        let week = activities.filter { interval?.contains($0.date) == true }
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 14) {
-                    Image("WorkingOutLogo").resizable().scaledToFit()
-                        .frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 12))
-                        .accessibilityHidden(true)
-                    Text("WorkingOut").font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
-                }
-                TrainingDesign.card {
-                    Label(display.text("weeklyGoal"), systemImage: "target").font(.headline)
-                    Text("\(week.count) / \(goal)").font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    ProgressView(value: TrainingMetrics.weeklyProgress(completed: week.count, goal: goal))
-                        .tint(.primary).accessibilityLabel(display.text("weeklyGoal"))
-                    if let start = interval?.start { weekCalendar(start: start, week: week) }
-                    if !week.isEmpty { weeklyMetrics(week) }
-                }
-                Button(action: openStrength) {
-                    TrainingAction(title: display.text(activeStrength ? "continueStrength" : "startStrength"), icon: "dumbbell.fill")
-                }.buttonStyle(.plain)
-                Button(action: openRun) {
-                    TrainingAction(title: display.text(activeRun ? "continueRun" : "running"), icon: "figure.run")
-                }.buttonStyle(.plain)
-                Button(action: openPrograms) {
-                    TrainingAction(title: display.text("programs"), icon: "list.bullet.clipboard")
-                }.buttonStyle(.plain)
-                TrainingDesign.card {
-                    Text(display.text("recent")).font(.headline).accessibilityAddTraits(.isHeader)
-                    if activities.isEmpty { Text(display.text("emptyOverview")).foregroundStyle(.secondary) }
-                    ForEach(activities.prefix(4)) { ActivityRow(activity: $0, display: display) }
-                }
-                if let record = activities.compactMap(\.strength).flatMap(\.exercises)
-                    .flatMap(\.sets).filter({ $0.metric.isValid && $0.warmup != true && $0.kg > 0 })
-                    .max(by: { $0.kg < $1.kg }) {
-                    TrainingDesign.card {
-                        Text(display.text("records")).font(.headline)
-                        LabeledContent(display.text("heaviest"), value: display.weightText(record.kg))
-                    }
-                }
-            }.padding()
-        }
-        .navigationTitle(display.text("overview"))
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func weeklyMetrics(_ week: [TrainingActivity]) -> some View {
-        VStack(spacing: 8) {
-            let known = week.compactMap(\.duration)
-            if !known.isEmpty {
-                LabeledContent(display.text("duration"), value: display.duration(known.reduce(0, +)))
-            }
-            let strength = week.compactMap(\.strength)
-            if !strength.isEmpty {
-                LabeledContent(display.text("volume"), value: display.weightText(strength.reduce(0) { $0 + $1.volume }))
-            }
-            let runs = week.filter(\.running).compactMap(\.meters)
-            if !runs.isEmpty {
-                LabeledContent(display.text("distance"), value: display.distanceText(runs.reduce(0, +)))
-            }
-        }.font(.subheadline)
-    }
-
-    private func weekCalendar(start: Date, week: [TrainingActivity]) -> some View {
-        ViewThatFits(in: .horizontal) {
-            HStack { days(start: start, week: week) }
-            VStack(alignment: .leading) { days(start: start, week: week) }
-        }
-    }
-
-    private func days(start: Date, week: [TrainingActivity]) -> some View {
-        ForEach(0..<7) { offset in
-            if let day = calendar.date(byAdding: .day, value: offset, to: start) {
-                let count = week.filter { calendar.isDate(day, inSameDayAs: $0.date) }.count
-                VStack(spacing: 4) {
-                    Text(day.formatted(.dateTime.weekday(.narrow).locale(Locale(identifier: display.language.resolved))))
-                    Image(systemName: count > 0 ? "checkmark.circle.fill" : "circle").accessibilityHidden(true)
-                }.font(.caption)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(day.formatted(.dateTime.weekday(.wide).locale(Locale(identifier: display.language.resolved))))
-                    .accessibilityValue(count.formatted(.number.locale(display.locale)))
-            }
-        }
-    }
-}
-
 struct ActivityRow: View {
     var activity: TrainingActivity
     var display: TrainingPresentation
@@ -177,191 +59,107 @@ struct ActivityRow: View {
     }
 }
 
-struct TrainingProgress: View {
-    @ObservedObject var gym: GymLog
-    @ObservedObject var health: TrainingStore
-    var display: TrainingPresentation
-    var activities: [TrainingActivity]
-    var calendar: Calendar
-    @State private var range = 30
-    @State private var exerciseID = ""
-    @State private var customStart = Calendar.current.date(byAdding: .day, value: -29, to: .now) ?? .now
-    @State private var customEnd = Date.now
 
-    private var filtered: [TrainingActivity] {
-        if range == 0 { return activities }
-        if range == -1 {
-            let start = calendar.startOfDay(for: customStart)
-            let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: customEnd)) ?? customEnd
-            return activities.filter { $0.date >= start && $0.date < end }
-        }
-        let cutoff = calendar.date(byAdding: .day, value: 1 - range, to: calendar.startOfDay(for: .now)) ?? .distantPast
-        return activities.filter { $0.date >= cutoff }
-    }
+private struct TrainingActivityDestination: View {
+    let activity: TrainingActivity
+    let gym: GymLog
+    let health: TrainingStore
+    let display: TrainingPresentation
 
     var body: some View {
-        let strength = filtered.compactMap(\.strength)
-        let runs = filtered.filter { $0.running && $0.meters != nil }
-        List {
-            Picker(display.text("dateRange"), selection: $range) {
-                ForEach([7, 30, 90, 365, 0, -1], id: \.self) { days in
-                    Text(display.text("range." + String(days))).tag(days)
-                }
-            }
-            if range == -1 {
-                DatePicker(display.text("startDate"), selection: $customStart, in: ...customEnd, displayedComponents: .date)
-                DatePicker(display.text("endDate"), selection: $customEnd, in: customStart..., displayedComponents: .date)
-            }
-            if !filtered.isEmpty { summary }
-            if filtered.isEmpty { Text(display.text("emptyProgress")).foregroundStyle(.secondary) }
-            if !strength.isEmpty {
-                Section(display.text("volume")) {
-                    Chart(strength) { session in
-                        BarMark(x: .value(display.text("date"), session.date, unit: .day),
-                                y: .value(display.text("volume"), display.weight.display(session.volume)))
-                            .foregroundStyle(Color.primary)
-                    }.frame(height: 160).accessibilityLabel(display.text("volume"))
-                    exerciseChart(strength)
-                }
-                muscleSummary(strength)
-            }
-            if !runs.isEmpty {
-                Section(display.text("runningDistance")) {
-                    Chart(runs) { run in
-                        BarMark(x: .value(display.text("date"), run.date, unit: .day),
-                                y: .value(display.text("distance"), display.distance.display(run.meters ?? 0)))
-                            .foregroundStyle(Color.primary)
-                    }.frame(height: 160).accessibilityLabel(display.text("runningDistance"))
-                    LabeledContent(display.text("distance"), value: display.distanceText(runs.compactMap(\.meters).reduce(0, +)))
-                    let timed = runs.filter { ($0.duration ?? 0) > 0 }
-                    let totalDuration = timed.compactMap(\.duration).reduce(0, +)
-                    let totalDistance = timed.compactMap(\.meters).reduce(0, +)
-                    if let pace = TrainingMetrics.runningPaceSeconds(duration: totalDuration, kilometers: display.distance.display(totalDistance)) {
-                        LabeledContent(display.text("averagePace"), value: "\(display.duration(Double(pace))) / \(display.distance.rawValue)")
-                    }
-                    if let longest = runs.compactMap(\.meters).max() {
-                        LabeledContent(display.text("longestRun"), value: display.distanceText(longest))
-                    }
-                }
-            }
-            runningRecords(runs)
-            Section(display.text("history")) {
-                ForEach(filtered) { activity in
-                    if let session = activity.strength {
-                        NavigationLink {
-                            StrengthHistoryDetail(gym: gym, display: display, id: session.id)
-                        } label: { ActivityRow(activity: activity, display: display) }
-                    } else if let run = activity.run {
-                        NavigationLink {
-                            List {
-                                RunMetrics(run: run, date: run.finishDate ?? run.date, display: display)
-                                RunRoute(run: run, display: display)
-                            }.navigationTitle(display.text("running"))
-                        } label: { ActivityRow(activity: activity, display: display) }
-                    } else {
-                        NavigationLink {
-                            ImportedWorkoutDetail(activity: activity, display: display, health: health)
-                        } label: { ActivityRow(activity: activity, display: display) }
-                    }
-                }
-            }
-        }.navigationTitle(display.text("progress"))
-    }
-
-    private var summary: some View {
-        Section(display.text("workouts")) {
-            LabeledContent(display.text("strength"), value: filtered.filter { !$0.running }.count.formatted(.number.locale(display.locale)))
-            LabeledContent(display.text("running"), value: filtered.filter(\.running).count.formatted(.number.locale(display.locale)))
-            let durations = filtered.compactMap(\.duration)
-            if !durations.isEmpty {
-                LabeledContent(display.text("duration"), value: display.duration(durations.reduce(0, +)))
-            }
+        if let session = activity.strength {
+            StrengthHistoryDetail(gym: gym, display: display, id: session.id)
+        } else if let run = activity.run {
+            List {
+                RunMetrics(run: run, date: run.finishDate ?? run.date, display: display)
+                RunRoute(run: run, display: display)
+            }.navigationTitle(display.text("running"))
+        } else {
+            ImportedWorkoutDetail(activity: activity, display: display, health: health)
         }
     }
+}
 
-    private func muscleSummary(_ sessions: [StrengthSession]) -> some View {
-        let counts = sessions.flatMap(\.exercises).reduce(into: [String: Int]()) { counts, exercise in
-            guard let id = exercise.exerciseID, let definition = ExerciseCatalog.byID[id] else { return }
-            let completed = exercise.sets.filter { $0.metric.isValid && $0.warmup != true }.count
-            if completed > 0 { counts[definition.primary, default: 0] += completed }
-        }
-        return Section(display.text("setsByMuscle")) {
-            if counts.isEmpty {
-                Text(display.text("emptyMuscle")).foregroundStyle(.secondary)
-            } else {
-                Chart {
-                    ForEach(counts.keys.sorted(), id: \.self) { muscle in
-                        BarMark(x: .value(display.text("workSets"), counts[muscle, default: 0]),
-                                y: .value(display.text("muscle"), display.text("muscle." + muscle)))
-                    }
-                }.foregroundStyle(Color.primary).frame(height: CGFloat(max(counts.count * 32, 120)))
+struct TrainingActivityLink: View {
+    let activity: TrainingActivity
+    let gym: GymLog
+    let health: TrainingStore
+    let display: TrainingPresentation
+
+    var body: some View {
+        NavigationLink {
+            TrainingActivityDestination(activity: activity, gym: gym, health: health, display: display)
+        } label: {
+            HStack(spacing: 13) {
+                Image(systemName: activity.running ? "figure.run" : "dumbbell.fill")
+                    .frame(width: 42, height: 42)
+                    .background(TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 11))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(display.text(activity.running ? "running" : "strength")).font(.headline)
+                    Text(activity.date.formatted(.dateTime.day().month().year().locale(display.locale)))
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                if let meters = activity.meters, activity.running {
+                    Text(display.distanceText(meters)).font(.subheadline.weight(.semibold))
+                } else if let duration = activity.duration {
+                    Text(display.duration(duration)).font(.subheadline.weight(.semibold))
+                }
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary).accessibilityHidden(true)
             }
+            .padding(.vertical, 7)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct StrengthRecord: Identifiable {
+    let exercise: StrengthExercise
+    let activity: TrainingActivity
+    let load: Double
+    var id: String { exercise.identity }
+
+    static func best(in activities: [TrainingActivity]) -> [Self] {
+        var records: [String: Self] = [:]
+        for activity in activities {
+            for exercise in activity.strength?.exercises ?? [] where exercise.progression?.loadKind != .assisted {
+                let sets = exercise.sets.filter { $0.warmup != true && $0.kg > 0 }
+                guard let load = TrainingMetrics.heaviestWeight(sets.map(\.metric)),
+                      load > (records[exercise.identity]?.load ?? 0) else { continue }
+                records[exercise.identity] = Self(exercise: exercise, activity: activity, load: load)
+            }
+        }
+        return records.values.sorted {
+            $0.load == $1.load ? $0.id < $1.id : $0.load > $1.load
         }
     }
+}
 
-    private func runningRecords(_ activities: [TrainingActivity]) -> some View {
-        let distances = [1_000.0, 1_609.344, 5_000, 10_000, 21_097.5, 42_195]
-        let gps = activities.compactMap(\.run)
-        let records = distances.compactMap { meters in
-            gps.compactMap { $0.timeTo(meters: meters) }.min().map { (meters, $0) }
-        }
-        return Group {
-            if !records.isEmpty {
-                Section(display.text("gpsRecords")) {
-                    Text(display.text("gpsRecordDescription")).font(.footnote).foregroundStyle(.secondary)
-                    ForEach(records.indices, id: \.self) { index in
-                        LabeledContent(display.distanceText(records[index].0), value: display.duration(records[index].1))
-                    }
-                }
-            }
-        }
-    }
+struct TrainingRecordLink: View {
+    let title: String
+    let value: String
+    let activity: TrainingActivity
+    let gym: GymLog
+    let health: TrainingStore
+    let display: TrainingPresentation
 
-    private func exerciseChart(_ strength: [StrengthSession]) -> some View {
-        let choices = Dictionary(grouping: strength.flatMap(\.exercises), by: \.identity)
-        let values = strength.compactMap { session -> (date: Date, best: Double, estimate: Double?)? in
-            let sets = session.exercises.filter { $0.identity == exerciseID }.flatMap(\.sets)
-                .filter { $0.warmup != true && $0.kg > 0 }.map(\.metric)
-            return TrainingMetrics.heaviestWeight(sets).map {
-                (session.date, $0, sets.compactMap(TrainingMetrics.estimatedOneRepMax).max())
+    var body: some View {
+        NavigationLink {
+            TrainingActivityDestination(activity: activity, gym: gym, health: health, display: display)
+        } label: {
+            HStack {
+                Image(systemName: "medal").accessibilityHidden(true)
+                Text(title).font(.headline)
+                Spacer(minLength: 8)
+                Text(value).font(.subheadline.weight(.semibold)).monospacedDigit()
+                Image(systemName: "chevron.right").font(.caption).accessibilityHidden(true)
             }
-        }.sorted { $0.date < $1.date }
-        return Group {
-            Picker(display.text("exerciseProgress"), selection: $exerciseID) {
-                Text(display.text("selectExercise")).tag("")
-                ForEach(choices.keys.sorted(), id: \.self) { key in
-                    if let exercise = choices[key]?.first {
-                        Text(display.name(exercise, custom: gym.log.customExercises ?? [])).tag(key)
-                    }
-                }
-            }
-            if !exerciseID.isEmpty {
-                let sets = gym.log.bestSets(for: exerciseID)
-                if let best = TrainingMetrics.heaviestWeight(sets) {
-                    LabeledContent(display.text("heaviest"), value: display.weightText(best))
-                }
-                if let estimate = sets.compactMap(TrainingMetrics.estimatedOneRepMax).max() {
-                    LabeledContent(display.text("estimatedMax"), value: display.weightText(estimate))
-                }
-                if values.count > 1 {
-                    Chart {
-                        ForEach(values.indices, id: \.self) { index in
-                            LineMark(x: .value(display.text("date"), values[index].date),
-                                     y: .value(display.text("weight"), display.weight.display(values[index].best)))
-                                .foregroundStyle(by: .value(display.text("weight"), display.text("heaviest")))
-                            PointMark(x: .value(display.text("date"), values[index].date),
-                                      y: .value(display.text("weight"), display.weight.display(values[index].best)))
-                                .foregroundStyle(by: .value(display.text("weight"), display.text("heaviest")))
-                            if let estimate = values[index].estimate {
-                                LineMark(x: .value(display.text("date"), values[index].date),
-                                         y: .value(display.text("weight"), display.weight.display(estimate)))
-                                    .foregroundStyle(by: .value(display.text("weight"), display.text("estimatedMax")))
-                                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [4, 4]))
-                            }
-                        }
-                    }.frame(height: 140)
-                }
-            }
+            .padding(.vertical, 9)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }

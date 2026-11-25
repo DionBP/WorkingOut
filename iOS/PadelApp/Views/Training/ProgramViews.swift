@@ -6,6 +6,10 @@ struct ProgramList: View {
     var display: TrainingPresentation
     var defaultRest: Int
     var start: (StrengthProgram, TrainingDay?) -> Void
+    var calendar: Calendar
+    var startScheduled: (ProgramOccurrence) -> Void
+    var openStrength: () -> Void
+    var openRun: () -> Void
     @State private var editing: StrengthProgram?
     @State private var deleting: StrengthProgram?
 
@@ -19,29 +23,51 @@ struct ProgramList: View {
     ]
 
     var body: some View {
-        List {
-            Section(display.text("savedPrograms")) {
-                Button(display.text("newProgram"), systemImage: "plus") {
-                    var program = StrengthProgram()
-                    program.restSeconds = defaultRest
-                    editing = program
+        TrainingDesign.page {
+            if gym.log.started != nil || !gym.log.exercises.isEmpty {
+                Button(action: openStrength) { Label(display.text("continueStrength"), systemImage: "play.fill") }
+                    .buttonStyle(TrainingCTA())
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    TrainingDesign.section(display.text("savedPrograms"))
+                    Spacer(minLength: 8)
+                    Button(display.text("newProgram"), systemImage: "plus") {
+                        var program = StrengthProgram()
+                        program.restSeconds = defaultRest
+                        editing = program
+                    }
+                    .labelStyle(.iconOnly)
+                    .font(.title3.weight(.semibold))
+                    .frame(minWidth: 44, minHeight: 44)
+                }
+                if (gym.log.programs ?? []).isEmpty {
+                    Text(display.text("emptyPrograms")).font(.subheadline).foregroundStyle(.secondary)
                 }
                 ForEach(gym.log.programs ?? []) { program in
-                    programLink(program)
-                        .swipeActions {
-                            Button(role: .destructive) { deleting = program } label: { Text(display.text("delete")) }
-                            Button { editing = program } label: { Text(display.text("edit")) }
-                        }
+                    programLink(program, saved: true)
                 }
             }
-            Section(display.text("templates")) {
+            quickActions
+            WeeklyPrograms(display: display, calendar: calendar, gym: gym, start: startScheduled)
+            VStack(alignment: .leading, spacing: 12) {
+                TrainingDesign.section(display.text("templates"))
                 ForEach(Self.templates.indices, id: \.self) { index in
                     let (key, ids) = Self.templates[index]
-                    programLink(template(key, ids: ids))
+                    programLink(template(key, ids: ids), saved: false)
+                }
+                if showsMediaCredit {
+                    Link(display.text("repdbCredit"), destination: URL(string: "https://repdb.co")!)
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
+
         }
-        .navigationTitle(display.text("programs"))
+        .navigationTitle(display.text("training"))
+        .navigationBarTitleDisplayMode(.inline)
+        #if DEBUG && targetEnvironment(simulator)
+        .onAppear { TrainingScreenshotFixtures.markRendered("training") }
+        #endif
         .sheet(item: $editing) { program in
             ProgramEditor(program: program, gym: gym, display: display)
         }
@@ -54,6 +80,24 @@ struct ProgramList: View {
         }
     }
 
+    private var quickActions: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { quickActionButtons }
+            VStack(alignment: .leading, spacing: 6) { quickActionButtons }
+        }
+        .font(.subheadline.weight(.semibold))
+    }
+
+    @ViewBuilder private var quickActionButtons: some View {
+        if gym.log.started == nil && gym.log.exercises.isEmpty {
+            Button(display.text("startStrength"), systemImage: "dumbbell.fill", action: openStrength)
+                .frame(minHeight: 44)
+        }
+        Button(display.text(gym.log.activeRun == nil ? "running" : "continueRun"),
+               systemImage: "figure.run", action: openRun)
+            .frame(minHeight: 44)
+    }
+
     private func template(_ key: String, ids: [String]) -> StrengthProgram {
         var program = StrengthProgram()
         program.name = display.text("program." + key)
@@ -62,32 +106,31 @@ struct ProgramList: View {
         return program
     }
 
-    private func programLink(_ program: StrengthProgram) -> some View {
-        NavigationLink(program.name) {
-            List {
+    private var showsMediaCredit: Bool {
+        let ids = Self.templates.flatMap { $0.1 } + (gym.log.programs ?? []).flatMap { program in
+            (program.exercises + (program.days ?? []).flatMap(\.exercises)).compactMap(\.exerciseID)
+        }
+        return ids.contains { ExerciseSnapshot.bundled.media?.illustration(for: $0) != nil }
+    }
+
+    private func programLink(_ program: StrengthProgram, saved: Bool) -> some View {
+        let preview = program.days?.first?.exercises ?? program.exercises
+        return NavigationLink {
+            TrainingDesign.page {
+                if !program.notes.isEmpty { Text(program.notes) }
                 if let days = program.days, !days.isEmpty {
-                    Section(display.text("trainingDays")) {
-                        ForEach(days.sorted { $0.weekday < $1.weekday }) { day in
-                            NavigationLink(day.name) {
-                                List {
-                                    Button(display.text("startProgram"), systemImage: "play.fill") { start(program, day) }
-                                        .disabled(gym.log.started != nil || !gym.log.exercises.isEmpty)
-                                    ForEach(day.exercises) { exercise in
-                                        Text(display.name(exercise, custom: gym.log.customExercises ?? []))
-                                    }
-                                }.navigationTitle(day.name)
-                            }
-                        }
+                    TrainingDesign.section(display.text("trainingDays"))
+                    ForEach(days.sorted { $0.weekday < $1.weekday }) { day in
+                        NavigationLink {
+                            TrainingDesign.page {
+                                workout(program, day: day, exercises: day.exercises)
+                            }.navigationTitle(day.name)
+                        } label: {
+                            programRow(day.name, exercises: day.exercises)
+                        }.buttonStyle(.plain)
                     }
                 } else {
-                    Button(display.text("startProgram"), systemImage: "play.fill") { start(program, nil) }
-                        .disabled(gym.log.started != nil || !gym.log.exercises.isEmpty)
-                }
-                if !program.notes.isEmpty { Text(program.notes) }
-                if program.days?.isEmpty != false {
-                    ForEach(program.exercises) { exercise in
-                        Text(display.name(exercise, custom: gym.log.customExercises ?? []))
-                    }
+                    workout(program, day: nil, exercises: program.exercises)
                 }
                 Button(display.text("duplicate"), systemImage: "plus.square.on.square") {
                     var copy = program
@@ -98,14 +141,75 @@ struct ProgramList: View {
                         return day
                     }
                     editing = copy
-                }
-                if gym.log.programs?.contains(where: { $0.id == program.id }) == true {
-                    Button(display.text("edit"), systemImage: "pencil") { editing = program }
+                }.frame(minHeight: 44)
+                if saved {
+                    Button(display.text("edit"), systemImage: "pencil") { editing = program }.frame(minHeight: 44)
+                    Button(display.text("delete"), systemImage: "trash", role: .destructive) { deleting = program }.frame(minHeight: 44)
                 }
             }
             .navigationTitle(program.name)
+        } label: {
+            programRow(program.name, exercises: preview)
+        }.buttonStyle(.plain)
+    }
+
+    private func programRow(_ title: String, exercises: [StrengthExercise]) -> some View {
+        HStack(spacing: 12) {
+            ExerciseThumbnail(id: ExerciseThumbnail.featured(in: exercises), display: display)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.headline)
+                Text(exercises.prefix(2).map { display.name($0, custom: gym.log.customExercises ?? []) }.joined(separator: " · "))
+                    .foregroundStyle(.secondary).font(.subheadline).lineLimit(2)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right").font(.caption).accessibilityHidden(true)
+        }
+        .padding(10)
+        .background(TrainingDesign.surface, in: RoundedRectangle(cornerRadius: 14))
+        .contentShape(Rectangle())
+    }
+
+    private func workout(_ program: StrengthProgram, day: TrainingDay?, exercises: [StrengthExercise]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button(display.text("startProgram"), systemImage: "play.fill") { start(program, day) }
+                .buttonStyle(TrainingCTA())
+                .disabled(gym.log.started != nil || !gym.log.exercises.isEmpty)
+            ForEach(exercises) { exercise in
+                exercisePreview(exercise)
+                if exercise.id != exercises.last?.id { Divider() }
+            }
+            if exercises.contains(where: { ExerciseSnapshot.bundled.media?.illustration(for: $0.identity) != nil }) {
+                Link(display.text("repdbCredit"), destination: URL(string: "https://repdb.co")!)
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
         }
     }
+
+    private func exercisePreview(_ exercise: StrengthExercise) -> some View {
+        let prepared = gym.prepare(exercise)
+        let working = prepared.sets.filter { $0.warmup != true }
+        let reps = exercise.progression.map { "\($0.minimum)–\($0.maximum)" }
+            ?? working.map { String($0.reps) }.joined(separator: "/")
+        return HStack(alignment: .top, spacing: 12) {
+            ExerciseThumbnail(id: exercise.exerciseID, display: display)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(display.name(exercise, custom: gym.log.customExercises ?? [])).font(.headline)
+                Text("\(working.count) \(display.text("workSets")) · \(reps) \(display.text("reps"))")
+                if let last = gym.log.previousSets(for: exercise.identity).last(where: { $0.warmup != true }) {
+                    Text("\(display.text("previous")) · \(display.weightText(last.kg)) × \(last.reps)")
+                }
+                if let suggestion = gym.recommendation(for: prepared),
+                   suggestion.reason != .insufficient, suggestion.reason != .manual {
+                    Text("\(display.text("recommended")) · \(display.weightText(suggestion.kg)) × \(suggestion.reps)")
+                } else if let target = working.first {
+                    Text("\(display.text("targetWeight")) · \(display.weightText(target.kg))")
+                }
+            }.font(.subheadline).foregroundStyle(.primary)
+        }
+        .padding(.vertical, 5)
+        .accessibilityElement(children: .combine)
+    }
+
 }
 
 struct ProgramEditor: View {

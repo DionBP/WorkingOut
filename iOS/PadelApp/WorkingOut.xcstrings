@@ -188,6 +188,108 @@
         }
       }
     },
+    "browsePrograms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse programs"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se programmer"
+          }
+        }
+      }
+    },
+    "bucket.day": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily totals"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total pr. dag"
+          }
+        }
+      }
+    },
+    "bucket.month": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly totals"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total pr. måned"
+          }
+        }
+      }
+    },
+    "bucket.week": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly totals"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total pr. uge"
+          }
+        }
+      }
+    },
+    "bucket.year": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annual totals"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total pr. år"
+          }
+        }
+      }
+    },
+    "calendarEmptyDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No training on this day"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen træning denne dag"
+          }
+        }
+      }
+    },
     "cancel": {
       "extractionState": "manual",
       "localizations": {
@@ -201,6 +303,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annuller"
+          }
+        }
+      }
+    },
+    "chartActivePeriods": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a bar to see its total. Only periods with activity are shown."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tryk på en søjle for at se totalen. Kun perioder med aktivitet vises."
           }
         }
       }
@@ -609,6 +728,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start en træning, eller importér en fra Apple Sundhed."
+          }
+        }
+      }
+    },
+    "emptyPrograms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a program or start with a template."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opret et program, eller start med en skabelon."
           }
         }
       }
@@ -3231,6 +3367,23 @@
         }
       }
     },
+    "historicalInsights": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training to date"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træning til dato"
+          }
+        }
+      }
+    },
     "history": {
       "extractionState": "manual",
       "localizations": {
@@ -4179,6 +4332,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sæt på pause"
+          }
+        }
+      }
+    },
+    "plannedWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout planned"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træning planlagt"
           }
         }
       }
@@ -5322,6 +5492,23 @@
         }
       }
     },
+    "thisWeek": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This week"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne uge"
+          }
+        }
+      }
+    },
     "todayWorkout": {
       "extractionState": "manual",
       "localizations": {
@@ -5407,6 +5594,23 @@
         }
       }
     },
+    "upcomingWorkouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upcoming sessions"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommende træninger"
+          }
+        }
+      }
+    },
     "useLastLoad": {
       "extractionState": "manual",
       "localizations": {
@@ -5471,6 +5675,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opvarmningssæt"
+          }
+        }
+      }
+    },
+    "weekStats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly totals"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ugens totaler"
           }
         }
       }

@@ -13,7 +13,12 @@ final class TrainingStore: ObservableObject {
     private var refreshing = false
     private var refreshPending = false
 
-    var available: Bool { HKHealthStore.isHealthDataAvailable() }
+    var available: Bool {
+        #if DEBUG && targetEnvironment(simulator)
+        if TrainingScreenshotFixtures.enabled { return false }
+        #endif
+        return HKHealthStore.isHealthDataAvailable()
+    }
 
     func connect() async {
         guard available else { issue = "healthUnavailable"; return }
@@ -33,6 +38,7 @@ final class TrainingStore: ObservableObject {
         guard !refreshing else { refreshPending = true; return }
         refreshing = true
         defer { refreshing = false }
+        // Request the complete HealthKit history once per refresh. Dashboard ranges are presentation filters.
         let predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
             HKQuery.predicateForWorkouts(with: .running),
             HKQuery.predicateForWorkouts(with: .traditionalStrengthTraining),

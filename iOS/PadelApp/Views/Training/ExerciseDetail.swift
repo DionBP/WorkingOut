@@ -47,16 +47,21 @@ struct ExerciseDetail: View {
     }
 }
 
-private struct ExerciseIllustration: View {
+struct ExerciseIllustration: View {
     let url: URL
     let label: String
+    var thumbnail = false
     @State private var picture: UIImage?
 
     var body: some View {
         Group {
             if let picture {
-                Image(uiImage: picture).resizable().scaledToFit().frame(maxHeight: 250)
+                Image(uiImage: picture).resizable().scaledToFit()
+                    .frame(maxHeight: thumbnail ? 56 : 250)
+                    .saturation(0)
                     .accessibilityLabel(label)
+            } else if thumbnail {
+                Image(systemName: "dumbbell.fill").foregroundStyle(.secondary)
             }
         }
         .task(id: url) {
@@ -88,4 +93,28 @@ private enum ExerciseImageCache {
         configuration.httpCookieStorage = nil
         return URLSession(configuration: configuration)
     }()
+}
+
+struct ExerciseThumbnail: View {
+    let id: String?
+    let display: TrainingPresentation
+
+    static func featured(in exercises: [StrengthExercise]) -> String? {
+        let ids = exercises.compactMap(\.exerciseID)
+        return ids.first { ExerciseSnapshot.bundled.media?.illustration(for: $0) != nil } ?? ids.first
+    }
+
+    var body: some View {
+        Group {
+            if let id, let url = ExerciseSnapshot.bundled.media?.illustration(for: id) {
+                ExerciseIllustration(url: url, label: display.text("exerciseIllustration"), thumbnail: true)
+            } else {
+                Image(systemName: "dumbbell.fill").foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 58, height: 56)
+        .background(TrainingDesign.subdued)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .accessibilityHidden(true)
+    }
 }
