@@ -1,12 +1,12 @@
 name: CI
 
-# Feature-branch safety net: the TestFlight workflow only runs on main, so
-# without this nothing compiles or tests changes before they land there.
 on:
-  push:
-    branches-ignore: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -45,7 +45,6 @@ jobs:
 
   build-apps:
     name: Build iOS + Watch apps (simulator)
-    needs: test-shared-core
     runs-on: xcode-27
     timeout-minutes: 45
     steps:
@@ -65,7 +64,7 @@ jobs:
           [[ "$sdk_version" == 27.* ]] || { echo "Expected iOS 27 SDK, got $sdk_version" >&2; exit 1; }
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: command -v xcodegen >/dev/null || HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen
 
       - name: Generate app icons
         run: python3 scripts/generate_app_icons.py
@@ -73,16 +72,8 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build WorkingOut iOS and Watch apps (no signing)
-        run: |
-          xcodebuild build \
-            -project Padel.xcodeproj \
-            -scheme PadelApp \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY=""
-
-      - name: Run WorkingOut UI smoke test
+      - name: Select iOS 27 simulator
+        id: simulator
         shell: bash
         run: |
           simulator_id="$(xcrun simctl list devices available --json | python3 -c '
@@ -93,12 +84,35 @@ jobs:
           ')"
           if [[ -z "$simulator_id" ]]; then
             echo "::notice::No iOS 27 iPhone simulator device is available for the UI smoke test."
-            exit 0
+            echo "destination=generic/platform=iOS Simulator" >> "$GITHUB_OUTPUT"
+          else
+            echo "destination=platform=iOS Simulator,id=$simulator_id" >> "$GITHUB_OUTPUT"
+            echo "id=$simulator_id" >> "$GITHUB_OUTPUT"
           fi
-          xcodebuild test \
+
+      - name: Build WorkingOut, Watch and UI tests (no signing)
+        env:
+          SIMULATOR_DESTINATION: ${{ steps.simulator.outputs.destination }}
+        run: |
+          xcodebuild build-for-testing \
             -project Padel.xcodeproj \
             -scheme PadelApp \
-            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -destination "$SIMULATOR_DESTINATION" \
+            -derivedDataPath "$RUNNER_TEMP/WorkingOutBuild" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Run WorkingOut UI smoke test
+        if: steps.simulator.outputs.id != ''
+        env:
+          SIMULATOR_DESTINATION: ${{ steps.simulator.outputs.destination }}
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building \
+            -project Padel.xcodeproj \
+            -scheme PadelApp \
+            -destination "$SIMULATOR_DESTINATION" \
+            -derivedDataPath "$RUNNER_TEMP/WorkingOutBuild" \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY=""
