@@ -92,6 +92,11 @@ struct ProgramList: View {
                 Button(display.text("duplicate"), systemImage: "plus.square.on.square") {
                     var copy = program
                     copy.id = UUID()
+                    copy.days = copy.days?.map { source in
+                        var day = source
+                        day.id = UUID()
+                        return day
+                    }
                     editing = copy
                 }
                 if gym.log.programs?.contains(where: { $0.id == program.id }) == true {

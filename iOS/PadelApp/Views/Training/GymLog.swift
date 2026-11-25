@@ -104,7 +104,7 @@ final class GymLog: ObservableObject {
         var plans = programs.flatMap { program -> [WearablePlan] in
             if let days = program.days, !days.isEmpty {
                 return days.map { day in
-                    WearablePlan(id: day.id.uuidString, programID: program.id, title: "\(program.name) · \(day.name)",
+                    WearablePlan(id: "\(program.id.uuidString):\(day.id.uuidString)", programID: program.id, title: "\(program.name) · \(day.name)",
                                  scheduledFor: nil, exercises: items(day.exercises, rest: day.restSeconds))
                 }
             }
