@@ -69,7 +69,7 @@ struct StrengthEditor: View {
                                     .foregroundStyle(TrainingDesign.accent)
                                     .frame(width: 28, height: 44)
                                     .background(TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 9))
-                                fields($set)
+                                fields(set)
                                 completion(exercise.id, set.wrappedValue, rest: exercise.restSeconds)
                             }
                             Toggle(display.text("warmup"), isOn: Binding(
