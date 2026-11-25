@@ -31,8 +31,12 @@ struct ExerciseTargets: View {
 
     private func targetSummary(_ exercise: StrengthExercise) -> String {
         let working = exercise.sets.filter { $0.warmup != true }
-        let reps = exercise.progression.map { "\($0.minimum)–\($0.maximum)" }
-            ?? working.map { String($0.reps) }.joined(separator: "/")
+        let reps: String
+        if let progression = exercise.progression, progression.strategy == .doubleProgression {
+            reps = "\(progression.minimum)–\(progression.maximum)"
+        } else {
+            reps = working.map { String($0.reps) }.joined(separator: "/")
+        }
         return "\(working.count) \(display.text("workSets")) · \(reps) \(display.text("reps"))"
     }
 
