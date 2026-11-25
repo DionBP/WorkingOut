@@ -36,6 +36,9 @@ jobs:
         working-directory: Packages/PadelKit
         run: swift test
 
+      - name: Check English and Danish String Catalogs
+        run: python3 scripts/check_workingout_localization.py
+
       - name: Run WorkingOutKit unit tests
         working-directory: Packages/WorkingOutKit
         run: swift test
@@ -76,5 +79,26 @@ jobs:
             -project Padel.xcodeproj \
             -scheme PadelApp \
             -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Run WorkingOut UI smoke test
+        shell: bash
+        run: |
+          simulator_id="$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          runtimes = json.load(sys.stdin)["devices"]
+          ios27 = [devices for runtime, devices in runtimes.items() if ".iOS-27-" in runtime]
+          print(next((device["udid"] for devices in ios27 for device in devices if device["name"].startswith("iPhone")), ""))
+          ')"
+          if [[ -z "$simulator_id" ]]; then
+            echo "::notice::No iOS 27 iPhone simulator device is available for the UI smoke test."
+            exit 0
+          fi
+          xcodebuild test \
+            -project Padel.xcodeproj \
+            -scheme PadelApp \
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY=""

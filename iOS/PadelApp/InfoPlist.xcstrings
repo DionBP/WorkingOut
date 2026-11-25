@@ -1,27 +1,57 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "NSHealthShareUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Padel reads your heart rate and active energy to show live workout stats while you play." } },
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Padel læser din puls og aktive energi for at vise live træningsdata, mens du spiller." } }
+  "sourceLanguage": "en",
+  "strings": {
+    "NSHealthShareUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WorkingOut reads workouts and their available metrics to show your training history."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WorkingOut læser træninger og deres tilgængelige målinger for at vise din træningshistorik."
+          }
+        }
       }
     },
-    "NSHealthUpdateUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Padel saves your padel matches as workouts in Health, including heart rate and calories." } },
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Padel gemmer dine padelkampe som træninger i Sundhed, inklusive puls og kalorier." } }
+    "NSHealthUpdateUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WorkingOut saves your recorded workouts in Apple Health."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WorkingOut gemmer dine registrerede træninger i Apple Sundhed."
+          }
+        }
       }
     },
-    "NSLocationWhenInUseUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Padel uses your location to find shared matches and players on nearby courts." } },
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Padel bruger din lokation til at finde delte kampe og spillere på baner i nærheden." } }
+    "NSLocationWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WorkingOut uses your location during a run to measure distance, pace and route."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WorkingOut bruger din lokation under et løb til at måle distance, tempo og rute."
+          }
+        }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

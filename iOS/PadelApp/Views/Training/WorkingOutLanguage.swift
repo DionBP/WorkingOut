@@ -1,0 +1,62 @@
+import SwiftUI
+import WorkingOutKit
+
+enum WorkingOutLanguage: String, CaseIterable, Identifiable {
+    case system, da, en
+
+    var id: Self { self }
+
+    var resolved: String {
+        if self != .system { return rawValue }
+        return Bundle.main.preferredLocalizations.first == "da" ? "da" : "en"
+    }
+
+    func text(_ key: String) -> String {
+        let bundle = Bundle.main.path(forResource: resolved, ofType: "lproj").flatMap { Bundle(path: $0) }
+        let fallback = Bundle.main.path(forResource: "en", ofType: "lproj").flatMap { Bundle(path: $0) }
+        let english = fallback?.localizedString(forKey: key, value: key, table: "WorkingOut") ?? key
+        return bundle?.localizedString(forKey: key, value: english, table: "WorkingOut") ?? english
+    }
+}
+
+struct TrainingPresentation {
+    let language: WorkingOutLanguage
+    let weight: WeightUnit
+    let distance: DistanceUnit
+    let locale: Locale
+
+    func text(_ key: String) -> String { language.text(key) }
+
+    func name(_ exercise: StrengthExercise, custom: [CustomExercise]) -> String {
+        if let id = exercise.exerciseID {
+            if let definition = ExerciseCatalog.byID[id] { return text(definition.titleKey) }
+            if let definition = custom.first(where: { $0.id == id }) { return definition.name }
+        }
+        return exercise.name
+    }
+
+    func number(_ value: Double, precision: Int = 1) -> String {
+        value.formatted(.number.precision(.fractionLength(0...precision)).locale(locale))
+    }
+
+    func weightText(_ kg: Double) -> String { "\(number(weight.display(kg))) \(weight.rawValue)" }
+    func distanceText(_ meters: Double) -> String { "\(number(distance.display(meters), precision: 2)) \(distance.rawValue)" }
+
+    func duration(_ seconds: TimeInterval) -> String {
+        guard seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return "—" }
+        let total = Int(seconds)
+        return Duration.seconds(total).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .abbreviated).locale(locale))
+    }
+}
+
+enum TrainingDesign {
+    static let lime = Color(red: 0.80, green: 0.94, blue: 0.33)
+    static let charcoal = Color(white: 0.12)
+
+    static func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12, content: content)
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
+    }
+}
