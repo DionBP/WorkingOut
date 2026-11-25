@@ -97,8 +97,8 @@ jobs:
           SIMULATOR_DESTINATION: ${{ steps.simulator.outputs.destination }}
         run: |
           xcodebuild build-for-testing \
-            -project Padel.xcodeproj \
-            -scheme PadelApp \
+            -project WorkingOut.xcodeproj \
+            -scheme WorkingOut \
             -destination "$SIMULATOR_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/WorkingOutBuild" \
             CODE_SIGNING_ALLOWED=NO \
@@ -111,7 +111,7 @@ jobs:
         timeout-minutes: 12
         run: |
           bash scripts/capture_training_screens.sh "$SIMULATOR_ID" \
-            "$RUNNER_TEMP/WorkingOutBuild/Build/Products/Debug-iphonesimulator/PadelApp.app" \
+            "$RUNNER_TEMP/WorkingOutBuild/Build/Products/Debug-iphonesimulator/WorkingOut.app" \
             "$RUNNER_TEMP/WorkingOutScreenshots"
 
       - name: Run WorkingOut UI smoke test
@@ -121,8 +121,8 @@ jobs:
         timeout-minutes: 20
         run: |
           xcodebuild test-without-building \
-            -project Padel.xcodeproj \
-            -scheme PadelApp \
+            -project WorkingOut.xcodeproj \
+            -scheme WorkingOut \
             -destination "$SIMULATOR_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/WorkingOutBuild" \
             -parallel-testing-enabled NO \

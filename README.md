@@ -46,9 +46,9 @@ Foreground refresh is supported. For future background HealthKit updates, evalua
 
 ## Development and validation
 
-- Use Xcode 27 and the iOS 27 SDK. The iPhone deployment target is iOS 17. Run `python3 scripts/generate_app_icons.py` and `xcodegen generate`, then open `Padel.xcodeproj` and select `PadelApp`. Inherited naming is required by the existing automation.
+- Use Xcode 27 and the iOS 27 SDK. The iPhone deployment target is iOS 17. Run `python3 scripts/generate_app_icons.py` and `xcodegen generate`, then open `WorkingOut.xcodeproj` and select `WorkingOut`.
 - Run `swift test --package-path Packages/WorkingOutKit`, `swift test --package-path Packages/PadelKit`, and `python3 scripts/check_workingout_localization.py`.
-- Linux runs package tests and static checks. Pull-request GitHub Actions builds the iOS and watchOS simulator targets with Xcode 27. CI runs a smoke test for live language switching and persistence when an iOS 27 iPhone simulator device is available. Run it locally with `xcodebuild test -project Padel.xcodeproj -scheme PadelApp -destination "platform=iOS Simulator,id=<simulator UUID>"`.
+- Linux runs package tests and static checks. Pull-request GitHub Actions builds the iOS and watchOS simulator targets with Xcode 27. CI runs a smoke test for live language switching and persistence when an iOS 27 iPhone simulator device is available. Run it locally with `xcodebuild test -project WorkingOut.xcodeproj -scheme WorkingOut -destination "platform=iOS Simulator,id=<simulator UUID>"`.
 - On iPhone, verify language switching immediately and after relaunch, both unit settings across the same history, wide Dynamic Type, and light and dark appearances. Test migration from an existing build, rest notification delivery while locked, GPS pause, lock, signal loss, and restart, and HealthKit denial, connection, import and local round-trip. Test Garmin import using real supported activities.
 - The local log keeps the original `workingout-gym-v1.json` filename. New fields are optional for backward decoding. Existing built-in exercise names map to immutable IDs. Other legacy names are preserved as custom exercises. An unreadable file blocks writes, and successful updates atomically replace the previous snapshot.
 

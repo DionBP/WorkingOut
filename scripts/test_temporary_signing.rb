@@ -32,6 +32,24 @@ class TemporarySigningTest
     raise 'Unsafe certificate selection' unless result.map { |r| r['id'] } == ['owned']
     puts 'PASS: only newly issued local development identity selected'
   end
+  def test_retry_is_limited_to_the_same_verified_certificate
+    requests = []
+    original_request = TemporarySigning.method(:request)
+    TemporarySigning.define_singleton_method(:request) do |method, url|
+      requests << [method, url]
+      raise TemporarySigning::RetryableAPIError if requests.length < 3
+    end
+    TemporarySigning.define_singleton_method(:sleep) { |_| }
+    TemporarySigning.revoke_verified('owned')
+    expected = [:delete, "https://#{TemporarySigning::HOST}/v1/certificates/owned"]
+    raise 'Unexpected certificate retry' unless requests == [expected, expected, expected]
+    puts 'PASS: transient failures retry only the verified certificate'
+  ensure
+    TemporarySigning.define_singleton_method(:request, original_request)
+    TemporarySigning.singleton_class.remove_method(:sleep)
+  end
+
 end
 
 TemporarySigningTest.new.test_only_new_local_team_development_identity_is_selected
+TemporarySigningTest.new.test_retry_is_limited_to_the_same_verified_certificate

@@ -12,6 +12,7 @@ require 'jwt'
 module TemporarySigning
   HOST = 'api.appstoreconnect.apple.com'
   TYPES = %w[DEVELOPMENT IOS_DEVELOPMENT].freeze
+  class RetryableAPIError < StandardError; end
 
   def self.request(method, url)
     uri = URI(url)
@@ -23,6 +24,7 @@ module TemporarySigning
     req['Authorization'] = "Bearer #{token}"
     response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 15, read_timeout: 30) { |http| http.request(req) }
     return {} if method == :delete && %w[204 404].include?(response.code)
+    raise RetryableAPIError if response.code == '429' || response.code.start_with?('5')
     raise "Certificate API #{method} failed (HTTP #{response.code})" unless response.code == '200' && method == :get
     JSON.parse(response.body)
   end
@@ -73,6 +75,19 @@ module TemporarySigning
     puts "Signing snapshot captured (#{state['ids'].length} existing certificates)."
   end
 
+  def self.revoke_verified(id)
+    raise 'Unexpected certificate ID' unless id.match?(/\A[A-Za-z0-9-]+\z/)
+    attempts = 0
+    begin
+      attempts += 1
+      request(:delete, "https://#{HOST}/v1/certificates/#{id}")
+    rescue RetryableAPIError, Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNRESET
+      raise if attempts >= 3
+      sleep(attempts)
+      retry
+    end
+  end
+
   def self.cleanup(path)
     unless File.file?(path)
       puts 'No signing snapshot; no certificates will be revoked.'
@@ -84,12 +99,17 @@ module TemporarySigning
     rows = candidates(before_ids: state.fetch('ids').to_set, before_local: state.fetch('local').to_set,
       after_remote: remote, after_local: identities, team: team, started: Time.at(state.fetch('started')))
     puts "Verified #{rows.length} newly created local development certificate(s)."
+    failures = 0
     rows.each do |row|
-      id = row.fetch('id')
-      raise 'Unexpected certificate ID' unless id.match?(/\A[A-Za-z0-9-]+\z/)
-      request(:delete, "https://#{HOST}/v1/certificates/#{id}")
-      puts 'Revoked one verified temporary development certificate.'
+      begin
+        revoke_verified(row.fetch('id'))
+        puts 'Revoked one verified temporary development certificate.'
+      rescue StandardError => error
+        failures += 1
+        warn "Verified certificate cleanup failed (#{error.class})."
+      end
     end
+    raise "Failed to clean up #{failures} verified certificate(s)" if failures > 0
     puts 'Certificate cleanup finished; distribution and pre-existing certificates preserved.'
   end
 end
