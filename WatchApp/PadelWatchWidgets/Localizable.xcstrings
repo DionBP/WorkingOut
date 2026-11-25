@@ -1,34 +1,57 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "Padel" : {
-      "localizations" : {
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Padel" } }
+  "sourceLanguage": "en",
+  "strings": {
+    "Training": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træning"
+          }
+        }
       }
     },
-    "Score" : {
-      "comment" : "Complication label — tap to score a match",
-      "localizations" : {
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Point" } }
+    "Open WorkingOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open WorkingOut"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åbn WorkingOut"
+          }
+        }
       }
     },
-    "Score Padel" : {
-      "comment" : "Complication name shown in the watch-face gallery",
-      "localizations" : {
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Score padel" } }
-      }
-    },
-    "Tap to jump straight into scoring a padel match." : {
-      "comment" : "Complication description shown in the watch-face gallery",
-      "localizations" : {
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Tryk for at hoppe direkte ind i en padelkamp." } }
-      }
-    },
-    "Tap to score" : {
-      "localizations" : {
-        "da" : { "stringUnit" : { "state" : "translated", "value" : "Tryk for at score" } }
+    "Open your WorkingOut training programs.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open your WorkingOut training programs."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åbn dine træningsprogrammer i WorkingOut."
+          }
+        }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

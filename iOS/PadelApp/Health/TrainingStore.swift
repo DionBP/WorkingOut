@@ -57,12 +57,13 @@ final class TrainingStore: ObservableObject {
 
     func unlinkedWorkouts(_ log: StrengthLog) -> [HKWorkout] {
         let hiddenIDs = Set(log.hiddenHealthIDs ?? [])
-        let hiddenSyncIDs = Set((log.hiddenSyncIDs ?? []).map(\.uuidString))
+        let hiddenSyncIDs = Set(log.hiddenSyncIDs ?? [])
         let runs = log.runs ?? []
         return workouts.filter { workout in
             if hiddenIDs.contains(workout.uuid) { return false }
-            if workout.sourceRevision.source.bundleIdentifier == Bundle.main.bundleIdentifier,
-               let id = workout.metadata?[HKMetadataKeySyncIdentifier] as? String, hiddenSyncIDs.contains(id) { return false }
+            if hiddenSyncIDs.contains(where: { owns(workout, id: $0) }) {
+                return false
+            }
             if workout.workoutActivityType == .running {
                 return !runs.contains { $0.healthID == workout.uuid || owns(workout, id: $0.id) }
             }
@@ -142,7 +143,11 @@ final class TrainingStore: ObservableObject {
     }
 
     private func owns(_ workout: HKWorkout, id: UUID) -> Bool {
-        workout.sourceRevision.source.bundleIdentifier == Bundle.main.bundleIdentifier &&
-            workout.metadata?[HKMetadataKeySyncIdentifier] as? String == id.uuidString
+        let source = workout.sourceRevision.source.bundleIdentifier
+        let syncID = workout.metadata?[HKMetadataKeySyncIdentifier] as? String
+        let phone = Bundle.main.bundleIdentifier ?? ""
+        return (source == phone && syncID == id.uuidString) ||
+            (source == Bundle.main.object(forInfoDictionaryKey: "WorkingOutWatchBundleIdentifier") as? String &&
+             syncID == WearableMessage.healthSyncPrefix + id.uuidString)
     }
 }

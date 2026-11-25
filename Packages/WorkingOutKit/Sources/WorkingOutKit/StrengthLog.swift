@@ -40,7 +40,14 @@ public struct StrengthExercise: Codable, Identifiable, Sendable {
 
     public var progression: ProgressionTarget?
     public var plannedWorkingSets: Int?
+    public var fromCompletePlan: Bool?
     public var restSeconds: Int?
+
+    var finishedPlannedWorkingSets: Bool {
+        guard let required = plannedWorkingSets else { return false }
+        let working = sets.filter { $0.warmup != true && $0.metric.isValid }
+        return working.count >= required
+    }
 
     public var identity: String { exerciseID ?? "legacy:" + name }
 }
@@ -114,6 +121,8 @@ public struct StrengthLog: Codable, Sendable {
     public var scheduleOverrides: [ScheduledWorkout]?
     public var activeOccurrenceID: String?
     public var activeProgramID: UUID?
+    public var activePlannedExerciseIDs: [UUID]?
+    public var receivedWearableIDs: [UUID]?
     public var hiddenHealthIDs: [UUID]?
     public var hiddenSyncIDs: [UUID]?
     public var customExercises: [CustomExercise]?
@@ -162,8 +171,12 @@ public struct StrengthLog: Codable, Sendable {
 
     @discardableResult
     public mutating func finish(at date: Date) -> Bool {
+        let completePlan = activePlannedExerciseIDs.map { ids in
+            ids.allSatisfy { id in exercises.first(where: { $0.id == id })?.finishedPlannedWorkingSets == true }
+        }
         let completed = exercises.compactMap { exercise -> StrengthExercise? in
             var copy = exercise
+            copy.fromCompletePlan = completePlan
             copy.sets = copy.sets.filter { $0.metric.isValid }
             return copy.sets.isEmpty ? nil : copy
         }
@@ -185,6 +198,7 @@ public struct StrengthLog: Codable, Sendable {
         activeRestSeconds = nil
         activeOccurrenceID = nil
         activeProgramID = nil
+        activePlannedExerciseIDs = nil
         notes = nil
     }
 
@@ -195,7 +209,7 @@ public struct StrengthLog: Codable, Sendable {
     }
 
     public func previousSets(for identity: String) -> [StrengthSet] {
-        history.reversed().lazy.compactMap { session in
+        history.sorted { $0.date > $1.date }.lazy.compactMap { session in
             session.exercises.first { $0.identity == identity }?.sets.filter { $0.metric.isValid }
         }.first ?? []
     }
@@ -206,7 +220,7 @@ public struct StrengthLog: Codable, Sendable {
     }
 }
 
-public enum WeightUnit: String, CaseIterable, Identifiable, Sendable {
+public enum WeightUnit: String, Codable, CaseIterable, Identifiable, Sendable {
     case kg, lb
     public var id: Self { self }
 
@@ -219,7 +233,7 @@ public enum WeightUnit: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-public enum DistanceUnit: String, CaseIterable, Identifiable, Sendable {
+public enum DistanceUnit: String, Codable, CaseIterable, Identifiable, Sendable {
     case km, mi
     public var id: Self { self }
 

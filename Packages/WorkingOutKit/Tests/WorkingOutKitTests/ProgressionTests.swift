@@ -30,6 +30,9 @@ final class ProgressionTests: XCTestCase {
         partial = high
         partial.plannedWorkingSets = 4
         XCTAssertEqual(recommend([partial, high])?.reason, .insufficient)
+        partial = high
+        partial.fromCompletePlan = false
+        XCTAssertEqual(recommend([partial, high])?.reason, .insufficient)
         XCTAssertEqual(recommend([])?.reason, .insufficient)
     }
 

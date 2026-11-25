@@ -64,7 +64,7 @@ public enum DoubleProgression {
               comparable.allSatisfy({ sets in
                   sets.count == workingSets && sets.allSatisfy { $0.metric.isValid && $0.hasValidEffort && abs($0.kg - kg) < 0.001 }
               }),
-              history.prefix(2).allSatisfy({ ($0.plannedWorkingSets ?? workingSets) == workingSets }) else {
+              history.prefix(2).allSatisfy({ $0.fromCompletePlan != false && ($0.plannedWorkingSets ?? workingSets) == workingSets }) else {
             return result(.insufficient, kg: kg, reps: target.minimum)
         }
         let latest = comparable[0]

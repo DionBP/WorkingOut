@@ -1,0 +1,16 @@
+# Exercise data and licensing
+
+WorkingOut ships the exercise text and structured metadata from Free Exercise DB. The upstream project describes its JSON dataset as public domain, and its repository and upstream wrkout text dataset carry the Unlicense. WorkingOut records the source and revision. The source offers broad gym coverage, with gaps in cardio, occasional classification or phrasing errors, and five records without instructions at the pinned revision. [Free Exercise DB](https://github.com/yuhonas/free-exercise-db/tree/f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5) [Upstream wrkout dataset](https://github.com/wrkout/exercises.json)
+
+The project maintainers could not verify the rights for the original photos. The importer only uses metadata and instructions, and strips all upstream media paths. [Free Exercise DB media discussion](https://github.com/yuhonas/free-exercise-db/issues/2)
+
+RepDB explicitly permits its free flat illustrations in commercial apps with visible attribution. Its license restricts republishing its data or images as a dataset and excludes preview animations from production use. WorkingOut references a small, reviewed list of version-pinned illustrations from its canonical repository and displays the RepDB credit beside them. The app caches successful downloads locally. Catalog lookup and instructions work offline without the illustrations, and cached images remain available until the system evicts them. WorkingOut requires no hosted dataset service. [RepDB free-tier license](https://github.com/RepDB/exercise-dataset/blob/f12da458a90f353a86c953f204304d5a8bd98275/LICENSE-DATA.md)
+
+The Michael Lemarec project offers MIT-licensed exercise metadata. Its published provenance does not establish redistribution rights for its demonstration videos, and its demo hosting is for evaluation. WorkingOut includes no videos. [Free Exercise DB API licensing and credits](https://github.com/michael-lemarec/free-exercise-db-api#license)
+
+## Rebuilding and updating
+
+- Edit the reviewed commit and SHA-256 in `Data/Exercises/source.json`, then run `python3 scripts/import_exercises.py`. Use `--input path/to/exercises.json` for an already downloaded copy. Source bytes must match the lock. The script sorts records and emits a reproducible, bundled snapshot with no runtime metadata fetches.
+- Existing WorkingOut identifiers own their history. The reviewed `aliases.json` maps selected matching upstream records onto those identifiers. New IDs use the literal upstream ID under the `fedb:` namespace. Avoid reassigning published aliases. Upstream deletions do not remove persisted local records, which retain their saved name and ID.
+- Danish translations live in `Data/Exercises/da.json`, keyed by the stable app ID. Four imported records have reviewed Danish instructions. The 105 original catalog names and untranslated legacy guidance remain bilingual where applicable. Imported names and instructions otherwise fall back to English. The picker searches either name when a Danish translation exists, regardless of the interface language.
+- Regenerate after editing translations, then run `python3 scripts/import_exercises.py --check` and `python3 scripts/check_workingout_localization.py`. Review changed or removed source IDs, aliases, translated steps, and media rights before shipping.
