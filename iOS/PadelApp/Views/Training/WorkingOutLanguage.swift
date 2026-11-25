@@ -59,6 +59,14 @@ struct TrainingPresentation {
     func weightText(_ kg: Double) -> String { "\(number(weight.display(kg))) \(weight.rawValue)" }
     func distanceText(_ meters: Double) -> String { "\(number(distance.display(meters), precision: 2)) \(distance.rawValue)" }
 
+    func compactDuration(_ seconds: TimeInterval) -> String {
+        guard seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return "—" }
+        let units: Set<Duration.UnitsFormatStyle.Unit> = seconds < 60 ? [.seconds] : [.hours, .minutes]
+        return Duration.seconds(Int(seconds)).formatted(
+            .units(allowed: units, width: .narrow, maximumUnitCount: 2).locale(locale)
+        )
+    }
+
     func duration(_ seconds: TimeInterval) -> String {
         guard seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return "—" }
         let total = Int(seconds)

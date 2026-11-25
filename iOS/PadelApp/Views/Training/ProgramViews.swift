@@ -64,6 +64,10 @@ struct ProgramList: View {
 
         }
         .navigationTitle(display.text("training"))
+        .navigationBarTitleDisplayMode(.inline)
+        #if DEBUG && targetEnvironment(simulator)
+        .onAppear { TrainingScreenshotFixtures.markRendered("training") }
+        #endif
         .sheet(item: $editing) { program in
             ProgramEditor(program: program, gym: gym, display: display)
         }

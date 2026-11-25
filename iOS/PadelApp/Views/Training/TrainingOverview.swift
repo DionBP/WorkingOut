@@ -14,7 +14,7 @@ struct TrainingOverview: View {
     let openProgress: () -> Void
     let start: (ProgramOccurrence) -> Void
     @State private var selectedDate = Date.now
-    @ScaledMetric(relativeTo: .caption) private var dayWidth = 38.0
+    @ScaledMetric(relativeTo: .caption) private var dayWidth = 44.0
 
     private var activeStrength: Bool { gym.log.started != nil || !gym.log.exercises.isEmpty }
 
@@ -30,8 +30,8 @@ struct TrainingOverview: View {
         TrainingDesign.page {
             todayHero(today)
             if let interval { weekPanel(interval, week: week, schedule: schedule, finished: finished) }
-            if !week.isEmpty { summary(week, title: display.text("weekStats")) }
-            else if !activities.isEmpty { summary(activities, title: display.text("historicalInsights")) }
+            if !week.isEmpty { summary(week, title: display.text("weekStats"), showCount: false) }
+            else if !activities.isEmpty { summary(activities, title: display.text("historicalInsights"), showCount: true) }
             records
             recent
         }
@@ -40,6 +40,9 @@ struct TrainingOverview: View {
         .toolbar {
             ToolbarItem(placement: .principal) { masthead }
         }
+        #if DEBUG && targetEnvironment(simulator)
+        .onAppear { TrainingScreenshotFixtures.markRendered("overview") }
+        #endif
     }
 
     private var masthead: some View {
@@ -127,7 +130,7 @@ struct TrainingOverview: View {
 
     private func calendarDays(_ interval: DateInterval, selected: Date, week: [TrainingActivity],
                               schedule: [ProgramOccurrence]) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             ForEach(0..<7) { offset in
                 if let day = calendar.date(byAdding: .day, value: offset, to: interval.start) {
                     dayButton(day, selected: selected, week: week, schedule: schedule)
@@ -149,7 +152,7 @@ struct TrainingOverview: View {
                 Image(systemName: worked ? "checkmark" : (planned ? "circle.fill" : "minus"))
                     .font(.system(size: 7, weight: .semibold)).accessibilityHidden(true)
             }
-            .frame(minWidth: max(38, dayWidth), maxWidth: .infinity, minHeight: 56)
+            .frame(minWidth: max(44, dayWidth), maxWidth: .infinity, minHeight: 56)
             .foregroundStyle(isSelected ? TrainingDesign.background : Color.primary)
             .background(isSelected ? Color.primary : TrainingDesign.subdued, in: RoundedRectangle(cornerRadius: 11))
         }
@@ -165,26 +168,31 @@ struct TrainingOverview: View {
         return display.text("calendarEmptyDay")
     }
 
-    private func summary(_ entries: [TrainingActivity], title: String) -> some View {
+    private func summary(_ entries: [TrainingActivity], title: String, showCount: Bool) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             TrainingDesign.section(title)
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) { metrics(entries) }
-                VStack(spacing: 8) { metrics(entries) }
+                HStack(spacing: 8) { metrics(entries, showCount: showCount) }
+                VStack(spacing: 8) { metrics(entries, showCount: showCount) }
             }
         }
     }
 
-    @ViewBuilder private func metrics(_ entries: [TrainingActivity]) -> some View {
-        TrainingMetric(label: display.text("workouts"), value: display.number(Double(entries.count), precision: 0), icon: "checkmark.circle")
+    @ViewBuilder private func metrics(_ entries: [TrainingActivity], showCount: Bool) -> some View {
+        let durations = entries.compactMap(\.duration)
+        if showCount || durations.isEmpty {
+            TrainingMetric(label: display.text("workouts"), value: display.number(Double(entries.count), precision: 0), icon: "checkmark.circle")
+        } else {
+            TrainingMetric(label: display.text("duration"), value: display.compactDuration(durations.reduce(0, +)), icon: "clock")
+        }
         let distance = entries.filter(\.running).compactMap(\.meters)
         let strength = entries.compactMap(\.strength)
         if !distance.isEmpty {
             TrainingMetric(label: display.text("distance"), value: display.distanceText(distance.reduce(0, +)), icon: "figure.run")
         } else if !strength.isEmpty {
             TrainingMetric(label: display.text("volume"), value: display.weightText(strength.reduce(0) { $0 + $1.volume }), icon: "dumbbell")
-        } else if !entries.compactMap(\.duration).isEmpty {
-            TrainingMetric(label: display.text("duration"), value: display.duration(entries.compactMap(\.duration).reduce(0, +)), icon: "clock")
+        } else if showCount && !durations.isEmpty {
+            TrainingMetric(label: display.text("duration"), value: display.compactDuration(durations.reduce(0, +)), icon: "clock")
         }
     }
 

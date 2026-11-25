@@ -11,6 +11,15 @@ enum TrainingScreenshotFixtures {
         enabled ? ProcessInfo.processInfo.environment["WORKINGOUT_SCREEN"] : nil
     }
 
+    static func markRendered(_ current: String) {
+        guard screen == current else { return }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
+            let url = URL.temporaryDirectory.appendingPathComponent("workingout-screenshot-ready")
+            try? Data(current.utf8).write(to: url, options: .atomic)
+        }
+    }
+
     static func log(calendar: Calendar = .current, now: Date = .now) -> StrengthLog {
         func exercise(_ id: String, _ name: String, kg: Double, reps: Int, done: Bool = false) -> StrengthExercise {
             var result = StrengthExercise(name: name, exerciseID: id, sets: (0..<3).map { _ in

@@ -313,13 +313,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only periods with activity are shown."
+            "value": "Tap a bar to see its total. Only periods with activity are shown."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun perioder med aktivitet vises."
+            "value": "Tryk på en søjle for at se totalen. Kun perioder med aktivitet vises."
           }
         }
       }

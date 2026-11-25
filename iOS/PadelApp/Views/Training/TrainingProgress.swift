@@ -68,6 +68,10 @@ struct TrainingProgress: View {
             }
         }
         .navigationTitle(display.text("progress"))
+        .navigationBarTitleDisplayMode(.inline)
+        #if DEBUG && targetEnvironment(simulator)
+        .onAppear { TrainingScreenshotFixtures.markRendered(running ? "running" : "strength") }
+        #endif
     }
 
     private var controls: some View {
@@ -102,7 +106,7 @@ struct TrainingProgress: View {
 
     private func metrics(_ entries: [TrainingActivity]) -> some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 9) { metricCards(entries) }
+            HStack(alignment: .top, spacing: 9) { metricCards(entries) }
             VStack(spacing: 9) { metricCards(entries) }
         }
     }
@@ -111,7 +115,7 @@ struct TrainingProgress: View {
         TrainingMetric(label: display.text("workouts"), value: display.number(Double(entries.count), precision: 0), icon: "checkmark.circle")
         let durations = entries.compactMap(\.duration)
         if !durations.isEmpty {
-            TrainingMetric(label: display.text("duration"), value: display.duration(durations.reduce(0, +)), icon: "clock")
+            TrainingMetric(label: display.text("duration"), value: display.compactDuration(durations.reduce(0, +)), icon: "clock")
         }
     }
 
