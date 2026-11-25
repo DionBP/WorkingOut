@@ -3,9 +3,10 @@ import Combine
 import WorkingOutKit
 
 @MainActor
-final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDelegate {
+final class RunLocationTracker: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published private(set) var authorization = CLAuthorizationStatus.notDetermined
     @Published private(set) var waitingForSignal = false
+    // Core Location delivers delegate calls on the run loop that creates the manager.
     private let manager = CLLocationManager()
     private var last: CLLocation?
     private var recordingSince: Date?

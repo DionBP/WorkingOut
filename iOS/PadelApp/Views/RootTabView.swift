@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import HealthKit
 import UserNotifications
 import WorkingOutKit
@@ -15,6 +16,7 @@ struct RootTabView: View {
     @AppStorage("workingout.restSeconds") private var rest = 90
     @AppStorage("workingout.firstWeekday") private var firstWeekday = 0
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
+    @EnvironmentObject private var connectivity: PhoneConnectivityManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var regionalLocale
     @State private var selectedTab = 0
@@ -50,6 +52,11 @@ struct RootTabView: View {
             NavigationStack(path: $trainingPath) {
                 ScrollView {
                     VStack(spacing: 14) {
+                        WeeklyPrograms(display: display, calendar: calendar, gym: gym) { workout in
+                            if gym.start(program: workout.program, day: workout.day, occurrence: workout) {
+                                trainingPath = [.strength]
+                            }
+                        }
                         action(gym.log.started != nil ? "continueStrength" : "strength", icon: "dumbbell.fill", route: .strength)
                         action(gym.log.activeRun != nil ? "continueRun" : "running", icon: "figure.run", route: .run)
                         action("programs", icon: "list.bullet.clipboard", route: .programs)
@@ -59,17 +66,14 @@ struct RootTabView: View {
                 .navigationDestination(for: TrainingRoute.self) { route in
                     switch route {
                     case .strength:
-                        List {
-                            StrengthEditor(gym: gym, display: display, defaultRest: rest, save: mirror)
-                        }
-                        .navigationTitle(display.text("strength"))
-                        .toolbar { EditButton().environment(\.locale, Locale(identifier: language.resolved)) }
+                        StrengthEditor(gym: gym, display: display, defaultRest: rest, save: mirror)
+                            .navigationTitle(display.text("strength"))
+                            .toolbar { EditButton().environment(\.locale, Locale(identifier: language.resolved)) }
                     case .run:
                         RunEditor(gym: gym, tracker: tracker, health: health, display: display, mirror: mirrorRun)
                     case .programs:
-                        ProgramList(gym: gym, display: display, defaultRest: rest) { program in
-                            gym.start(program: program)
-                            if gym.log.started != nil { trainingPath = [.strength] }
+                        ProgramList(gym: gym, display: display, defaultRest: rest) { program, day in
+                            if gym.start(program: program, day: day) { trainingPath = [.strength] }
                         }
                     }
                 }
@@ -82,13 +86,41 @@ struct RootTabView: View {
                 .tabItem { Label(display.text("profile"), systemImage: "person.crop.circle") }.tag(3)
         }
         .tint(.primary)
-        .task { await health.refresh() }
+        .task {
+            publishWearablePlan()
+            await health.refresh()
+        }
+        .onReceive(gym.$log.debounce(for: .milliseconds(600), scheduler: RunLoop.main)) { _ in publishWearablePlan() }
+        .onChange(of: language) { _, _ in publishWearablePlan() }
+        .onChange(of: weight) { _, _ in publishWearablePlan() }
+        .onChange(of: distance) { _, _ in publishWearablePlan() }
+        .onReceive(connectivity.$wearableResults) { results in
+            guard !results.isEmpty else { return }
+            Task { @MainActor in
+                for result in results {
+                    if gym.log.receivedWearableIDs?.contains(result.id) == true ||
+                        gym.log.history.contains(where: { $0.id == result.id }) ||
+                        gym.log.hiddenSyncIDs?.contains(result.id) == true {
+                        connectivity.acknowledge(result.id)
+                        continue
+                    }
+                    var inserted = false
+                    if gym.update({ inserted = $0.receiveWearableSession(result) }), inserted {
+                        connectivity.acknowledge(result.id)
+                    }
+                }
+                await health.refresh()
+            }
+        }
         .onChange(of: shouldTrackRun, initial: true) { _, active in
             if active { startTracking() }
             else { tracker.stop() }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await health.refresh() } }
+            if phase == .active {
+                publishWearablePlan()
+                Task { await health.refresh() }
+            }
         }
         .alert(display.text("health"), isPresented: Binding(
             get: { health.issue != nil }, set: { if !$0 { health.issue = nil } }
@@ -100,6 +132,10 @@ struct RootTabView: View {
         .alert(display.text("storageTitle"), isPresented: $gym.storageError) {
             Button(display.text("ok"), role: .cancel) {}
         } message: { Text(display.text(gym.inaccessible ? "storageRead" : "storageWrite")) }
+    }
+
+    private func publishWearablePlan() {
+        connectivity.publish(gym.wearableFeed(display: display, calendar: calendar))
     }
 
     private var profile: some View {

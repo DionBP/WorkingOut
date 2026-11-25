@@ -1,9 +1,10 @@
 import Foundation
 import WatchConnectivity
 import PadelKit
+import WorkingOutKit
 
 @MainActor
-final class PhoneConnectivityManager: NSObject, ObservableObject {
+final class PhoneConnectivityManager: NSObject, ObservableObject, @preconcurrency WearablePlanTransport {
     static let shared = PhoneConnectivityManager()
 
     @Published var isWatchReachable: Bool = false
@@ -12,6 +13,8 @@ final class PhoneConnectivityManager: NSObject, ObservableObject {
     @Published var lastReceivedMatch: MatchState?
     @Published var lastReceivedAmericano: AmericanoSession?
 
+    @Published private(set) var wearableResults: [StrengthSession] = []
+    private var wearableContext: Data?
     private var session: WCSession?
 
     private override init() {
@@ -21,6 +24,25 @@ final class PhoneConnectivityManager: NSObject, ObservableObject {
         session.delegate = self
         session.activate()
         self.session = session
+    }
+
+    func publish(_ feed: WearablePlanFeed) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        guard let data = try? encoder.encode(feed), data != wearableContext else { return }
+        wearableContext = data
+        sendWearableContext()
+    }
+
+    func acknowledge(_ id: UUID) {
+        guard let session, session.activationState == .activated, session.isPaired else { return }
+        session.transferUserInfo([WearableMessage.receipt: id.uuidString])
+        wearableResults.removeAll { $0.id == id }
+    }
+
+    private func sendWearableContext() {
+        guard let session, session.activationState == .activated, session.isPaired, let wearableContext else { return }
+        try? session.updateApplicationContext([WearableMessage.plans: wearableContext])
     }
 
     func send(_ payload: SyncPayload) {
@@ -58,6 +80,7 @@ final class PhoneConnectivityManager: NSObject, ObservableObject {
 extension PhoneConnectivityManager: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
         Task { @MainActor in
+            self.sendWearableContext()
             self.isWatchPaired = session.isPaired
             self.isWatchAppInstalled = session.isWatchAppInstalled
             self.isWatchReachable = session.isReachable
@@ -78,6 +101,7 @@ extension PhoneConnectivityManager: WCSessionDelegate {
 
     nonisolated func sessionWatchStateDidChange(_ session: WCSession) {
         Task { @MainActor in
+            self.sendWearableContext()
             self.isWatchPaired = session.isPaired
             self.isWatchAppInstalled = session.isWatchAppInstalled
         }
@@ -92,6 +116,14 @@ extension PhoneConnectivityManager: WCSessionDelegate {
     }
 
     nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-        handleIncoming(userInfo)
+        if let bytes = userInfo[WearableMessage.result] as? Data,
+           let workout = try? JSONDecoder().decode(StrengthSession.self, from: bytes) {
+            Task { @MainActor in
+                guard !self.wearableResults.contains(where: { $0.id == workout.id }) else { return }
+                self.wearableResults.append(workout)
+            }
+        } else {
+            handleIncoming(userInfo)
+        }
     }
 }

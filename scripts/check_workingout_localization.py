@@ -14,7 +14,7 @@ for path in [*TRAINING.glob("*.swift"), APP / "Views" / "RootTabView.swift", APP
     source = path.read_text(encoding="utf-8")
     keys.update(re.findall(r'\b(?:text|action|filter)\("([A-Za-z0-9]+)"', source))
     keys.update(re.findall(r'issue = "([A-Za-z0-9]+)"', source))
-    if path.name == "WorkingOutLanguage.swift":
+    if path.name in {"WorkingOutLanguage.swift", "ImportedExercises.swift"}:
         continue
     for pair in re.findall(r'\? "([A-Za-z0-9]+)" : "([A-Za-z0-9]+)"', source):
         keys.update(pair)
@@ -50,4 +50,14 @@ def check_translations(strings, label):
 check_translations(catalog, "WorkingOut")
 for path in [APP / "InfoPlist.xcstrings", ROOT / "WatchApp/PadelWatch/InfoPlist.xcstrings"]:
     check_translations(json.loads(path.read_text(encoding="utf-8"))["strings"], path)
+watch_path = ROOT / "WatchApp/PadelWatch"
+watch_strings = json.loads((watch_path / "TrainingWatch.xcstrings").read_text(encoding="utf-8"))["strings"]
+watch_source = (watch_path / "WorkingOutWatchApp.swift").read_text(encoding="utf-8")
+watch_keys = set(re.findall(r'\btext\("([A-Za-z0-9]+)"', watch_source))
+watch_keys.update({"pause", "resume"})
+watch_keys.update("reason." + reason for reason in ["maintain", "increase", "reduce", "bodyweight", "highEffort"])
+assert watch_keys <= watch_strings.keys(), "Missing watchOS keys"
+check_translations(watch_strings, "WorkingOut Watch")
+widget_path = ROOT / "WatchApp/PadelWatchWidgets/Localizable.xcstrings"
+check_translations(json.loads(widget_path.read_text(encoding="utf-8"))["strings"], widget_path)
 print(f"Checked {len(catalog)} bilingual strings and {len(exercise_ids)} exercise IDs.")

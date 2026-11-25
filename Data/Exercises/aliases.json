@@ -1,0 +1,14 @@
+{
+  "Barbell_Bench_Press_-_Medium_Grip": "bench-press",
+  "Barbell_Incline_Bench_Press_-_Medium_Grip": "incline-barbell-press",
+  "Decline_Barbell_Bench_Press": "decline-bench-press",
+  "Dumbbell_Bench_Press": "dumbbell-bench-press",
+  "Barbell_Squat": "squat",
+  "Barbell_Deadlift": "deadlift",
+  "Romanian_Deadlift": "romanian-deadlift",
+  "Goblet_Squat": "goblet-squat",
+  "Arnold_Dumbbell_Press": "arnold-press",
+  "Hammer_Curls": "hammer-curl",
+  "Pushups": "push-up",
+  "Pullups": "pull-up"
+}

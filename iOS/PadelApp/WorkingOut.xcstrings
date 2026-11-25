@@ -1,6 +1,23 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "addDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add training day"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilføj træningsdag"
+          }
+        }
+      }
+    },
     "addExercise": {
       "extractionState": "manual",
       "localizations": {
@@ -120,6 +137,23 @@
         }
       }
     },
+    "applySuggestion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply suggestion to remaining sets"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brug forslaget på resterende sæt"
+          }
+        }
+      }
+    },
     "averageHeartRate": {
       "extractionState": "manual",
       "localizations": {
@@ -201,6 +235,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fuldfør sæt"
+          }
+        }
+      }
+    },
+    "completedWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gennemført"
           }
         }
       }
@@ -324,6 +375,23 @@
         }
       }
     },
+    "dayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day name"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navn på træningsdag"
+          }
+        }
+      }
+    },
     "delete": {
       "extractionState": "manual",
       "localizations": {
@@ -443,6 +511,23 @@
         }
       }
     },
+    "duplicateDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate training day"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikér træningsdag"
+          }
+        }
+      }
+    },
     "duration": {
       "extractionState": "manual",
       "localizations": {
@@ -473,6 +558,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rediger"
+          }
+        }
+      }
+    },
+    "effort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effort (optional)"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anstrengelse (valgfrit)"
           }
         }
       }
@@ -545,6 +647,23 @@
         }
       }
     },
+    "englishExerciseFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English instructions"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vejledning på engelsk"
+          }
+        }
+      }
+    },
     "equipment": {
       "extractionState": "manual",
       "localizations": {
@@ -558,6 +677,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Udstyr"
+          }
+        }
+      }
+    },
+    "equipment.bands": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resistance bands"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elastikker"
           }
         }
       }
@@ -630,6 +766,57 @@
         }
       }
     },
+    "equipment.exerciseBall": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exercise ball"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træningsbold"
+          }
+        }
+      }
+    },
+    "equipment.ezBar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EZ curl bar"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EZ-stang"
+          }
+        }
+      }
+    },
+    "equipment.foamRoll": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foam roller"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skumrulle"
+          }
+        }
+      }
+    },
     "equipment.kettlebell": {
       "extractionState": "manual",
       "localizations": {
@@ -660,6 +847,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Maskine"
+          }
+        }
+      }
+    },
+    "equipment.medicineBall": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medicine ball"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medicinbold"
+          }
+        }
+      }
+    },
+    "equipment.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other equipment"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andet udstyr"
+          }
+        }
+      }
+    },
+    "equipmentIncrement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipment default"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard for udstyr"
           }
         }
       }
@@ -2466,6 +2704,23 @@
         }
       }
     },
+    "exerciseIllustration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exercise illustration"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Øvelsesillustration"
+          }
+        }
+      }
+    },
     "exerciseLibrary": {
       "extractionState": "manual",
       "localizations": {
@@ -2513,6 +2768,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Udvikling pr. øvelse"
+          }
+        }
+      }
+    },
+    "exerciseSources": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exercise data and illustrations"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Øvelsesdata og illustrationer"
           }
         }
       }
@@ -3010,6 +3282,23 @@
         }
       }
     },
+    "instructionsUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No instructions are available for this exercise."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der er ingen vejledning til denne øvelse."
+          }
+        }
+      }
+    },
     "language": {
       "extractionState": "manual",
       "localizations": {
@@ -3078,6 +3367,91 @@
         }
       }
     },
+    "legacyProgramDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original workout"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oprindelig træning"
+          }
+        }
+      }
+    },
+    "load.assisted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assisted"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assisteret"
+          }
+        }
+      }
+    },
+    "load.bodyweight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bodyweight"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kropsvægt"
+          }
+        }
+      }
+    },
+    "load.external": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "External weight"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekstern vægt"
+          }
+        }
+      }
+    },
+    "loadType": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load type"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belastningstype"
+          }
+        }
+      }
+    },
     "longestRun": {
       "extractionState": "manual",
       "localizations": {
@@ -3091,6 +3465,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Længste løbetur"
+          }
+        }
+      }
+    },
+    "maximumReps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum reps"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Højeste antal gentagelser"
+          }
+        }
+      }
+    },
+    "minimumReps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum reps"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindste antal gentagelser"
           }
         }
       }
@@ -3384,6 +3792,23 @@
         }
       }
     },
+    "muscle.abductors": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abductors"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hofteabduktorer"
+          }
+        }
+      }
+    },
     "muscle.adductors": {
       "extractionState": "manual",
       "localizations": {
@@ -3537,6 +3962,23 @@
         }
       }
     },
+    "muscle.neck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neck"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nakke"
+          }
+        }
+      }
+    },
     "muscle.quads": {
       "extractionState": "manual",
       "localizations": {
@@ -3652,6 +4094,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nyt program"
+          }
+        }
+      }
+    },
+    "noScheduledWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No workout scheduled today"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen træning planlagt i dag"
           }
         }
       }
@@ -3979,6 +4438,23 @@
         }
       }
     },
+    "progressionStrategy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progression strategy"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progressionsstrategi"
+          }
+        }
+      }
+    },
     "range.-1": {
       "extractionState": "manual",
       "localizations": {
@@ -4081,6 +4557,125 @@
         }
       }
     },
+    "reason.bodyweight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep bodyweight and progress with repetitions."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brug fortsat kropsvægt, og øg antallet af gentagelser."
+          }
+        }
+      }
+    },
+    "reason.highEffort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent effort was high. Keep the current load."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anstrengelsen var høj i seneste træning. Behold belastningen."
+          }
+        }
+      }
+    },
+    "reason.increase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All recent required sets reached the top of the range in the latest workout. Consider a harder load."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle krævede sæt nåede toppen af intervallet i seneste træning. Overvej højere belastning."
+          }
+        }
+      }
+    },
+    "reason.insufficient": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete two comparable workouts before changing the load based on history."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gennemfør to sammenlignelige træninger før en historikbaseret ændring af belastningen."
+          }
+        }
+      }
+    },
+    "reason.maintain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the current load and work within the repetition range."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behold belastningen, og arbejd inden for gentagelsesintervallet."
+          }
+        }
+      }
+    },
+    "reason.manual": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This exercise uses manual progression."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne øvelse bruger manuel progression."
+          }
+        }
+      }
+    },
+    "reason.reduce": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repetitions fell below target in two comparable workouts. Consider an easier load."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gentagelserne lå under målet i to sammenlignelige træninger. Overvej lavere belastning."
+          }
+        }
+      }
+    },
     "recent": {
       "extractionState": "manual",
       "localizations": {
@@ -4094,6 +4689,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seneste aktiviteter"
+          }
+        }
+      }
+    },
+    "recommended": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested next set"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forslag til næste sæt"
           }
         }
       }
@@ -4115,6 +4727,23 @@
         }
       }
     },
+    "repdbCredit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exercise data by RepDB (repdb.co)"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Øvelsesdata fra RepDB (repdb.co)"
+          }
+        }
+      }
+    },
     "reps": {
       "extractionState": "manual",
       "localizations": {
@@ -4128,6 +4757,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gentagelser"
+          }
+        }
+      }
+    },
+    "reschedule": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reschedule"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flyt træning"
           }
         }
       }
@@ -4200,6 +4846,23 @@
         }
       }
     },
+    "rir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reps in reserve (RIR)"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gentagelser i reserve (RIR)"
+          }
+        }
+      }
+    },
     "route": {
       "extractionState": "manual",
       "localizations": {
@@ -4213,6 +4876,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rute"
+          }
+        }
+      }
+    },
+    "rpe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perceived effort (RPE)"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oplevet anstrengelse (RPE)"
           }
         }
       }
@@ -4387,6 +5067,23 @@
         }
       }
     },
+    "skipWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip workout"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spring træningen over"
+          }
+        }
+      }
+    },
     "splits": {
       "extractionState": "manual",
       "localizations": {
@@ -4523,6 +5220,40 @@
         }
       }
     },
+    "strategy.doubleProgression": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double progression"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dobbelt progression"
+          }
+        }
+      }
+    },
+    "strategy.manual": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuel"
+          }
+        }
+      }
+    },
     "strength": {
       "extractionState": "manual",
       "localizations": {
@@ -4557,6 +5288,23 @@
         }
       }
     },
+    "targetWeight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target weight"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Målvægt"
+          }
+        }
+      }
+    },
     "templates": {
       "extractionState": "manual",
       "localizations": {
@@ -4570,6 +5318,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skabeloner"
+          }
+        }
+      }
+    },
+    "todayWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's workout"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dagens træning"
           }
         }
       }
@@ -4591,6 +5356,40 @@
         }
       }
     },
+    "trainingDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training day"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træningsdag"
+          }
+        }
+      }
+    },
+    "trainingDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training days"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træningsdage"
+          }
+        }
+      }
+    },
     "undoSet": {
       "extractionState": "manual",
       "localizations": {
@@ -4604,6 +5403,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Markér sæt som ikke gennemført"
+          }
+        }
+      }
+    },
+    "useLastLoad": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefill with the last completed load"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brug seneste gennemførte belastning"
           }
         }
       }
@@ -4655,6 +5471,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opvarmningssæt"
+          }
+        }
+      }
+    },
+    "weekday": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekday"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ugedag"
           }
         }
       }
@@ -4795,6 +5628,23 @@
         }
       }
     },
+    "weeklyPlan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly training plan"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ugens træningsplan"
+          }
+        }
+      }
+    },
     "weight": {
       "extractionState": "manual",
       "localizations": {
@@ -4808,6 +5658,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vægt"
+          }
+        }
+      }
+    },
+    "weightIncrement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight increment"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vægttrin"
           }
         }
       }

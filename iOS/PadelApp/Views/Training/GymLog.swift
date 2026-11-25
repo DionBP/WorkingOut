@@ -45,24 +45,112 @@ final class GymLog: ObservableObject {
         }
     }
 
-    func start(program: StrengthProgram? = nil) {
-        guard log.started == nil, program == nil || log.exercises.isEmpty else { return }
-        update { log in
+    @discardableResult
+    func start(program: StrengthProgram? = nil, day: TrainingDay? = nil, occurrence: ProgramOccurrence? = nil) -> Bool {
+        guard log.started == nil, program == nil || log.exercises.isEmpty else { return false }
+        if let occurrence, log.history.contains(where: { $0.occurrenceID == occurrence.id }) { return false }
+        let planned = (day?.exercises ?? program?.exercises ?? []).map { target in
+            var prepared = prepare(target)
+            prepared.id = UUID()
+            return prepared
+        }
+        return update { log in
             log.started = .now
             if let program {
                 log.notes = program.notes
-                log.activeRestSeconds = program.restSeconds
-                log.exercises = program.exercises.map { target in
-                    let previous = log.previousSets(for: target.identity)
-                    let sets = target.sets.enumerated().map { index, set in
-                        StrengthSet(kg: set.kg > 0 ? set.kg : (previous.indices.contains(index) ? previous[index].kg : 0),
-                                    reps: set.reps, warmup: set.warmup)
-                    }
-                    return StrengthExercise(name: target.name, exerciseID: target.exerciseID, sets: sets)
-                }
+                log.activeProgramID = program.id
+                log.activeOccurrenceID = occurrence?.id
+                log.activeRestSeconds = day?.restSeconds ?? program.restSeconds
+                log.exercises = planned
+                log.activePlannedExerciseIDs = planned.map(\.id)
             }
         }
     }
+
+    private func prepare(_ target: StrengthExercise) -> StrengthExercise {
+        let previous = log.previousSets(for: target.identity)
+        let previousWorking = previous.filter { $0.warmup != true }
+        let required = target.sets.filter { $0.warmup != true }.count
+        let previousLoad = previousWorking.first?.kg
+        let useLastLoad = target.progression?.strategy == .doubleProgression &&
+            target.progression?.useLastLoad == true && previousWorking.count == required &&
+            previousWorking.allSatisfy { $0.kg == previousLoad }
+        var exercise = target
+        exercise.plannedWorkingSets = required
+        exercise.sets = target.sets.enumerated().map { index, set in
+            let prefill = previous.indices.contains(index) ? previous[index].kg : 0
+            let base = target.progression != nil || set.kg > 0 ? set.kg : prefill
+            let weight = useLastLoad && set.warmup != true ? (previousLoad ?? base) : base
+            var prepared = set
+            prepared.kg = weight
+            prepared.done = false
+            prepared.rpe = nil
+            prepared.rir = nil
+            return prepared
+        }
+        return exercise
+    }
+
+    func wearableFeed(display: TrainingPresentation, calendar: Calendar) -> WearablePlanFeed {
+        let programs = (log.programs ?? []).filter(\.isValid)
+        func items(_ targets: [StrengthExercise], rest: Int) -> [WearableExercise] {
+            targets.map { target in
+                var ready = prepare(target)
+                ready.name = display.name(ready, custom: log.customExercises ?? [])
+                return WearableExercise(exercise: ready, previous: log.previousSets(for: ready.identity),
+                                        recommendation: recommendation(for: ready), restSeconds: ready.restSeconds ?? rest)
+            }
+        }
+        var plans = programs.flatMap { program -> [WearablePlan] in
+            if let days = program.days, !days.isEmpty {
+                return days.map { day in
+                    WearablePlan(id: "\(program.id.uuidString):\(day.id.uuidString)", programID: program.id, title: "\(program.name) · \(day.name)",
+                                 scheduledFor: nil, exercises: items(day.exercises, rest: day.restSeconds))
+                }
+            }
+            return [WearablePlan(id: program.id.uuidString, programID: program.id, title: program.name,
+                                 scheduledFor: nil, exercises: items(program.exercises, rest: program.restSeconds))]
+        }
+        let start = calendar.startOfDay(for: .now)
+        if let end = calendar.date(byAdding: .day, value: 7, to: start) {
+            let upcoming = ProgramSchedule.occurrences(programs: programs, overrides: log.scheduleOverrides ?? [],
+                                                       in: DateInterval(start: start, end: end), calendar: calendar)
+            let completed = Set(log.history.compactMap(\.occurrenceID))
+            plans = upcoming.filter { !completed.contains($0.id) }.map { occurrence in
+                WearablePlan(id: occurrence.id, programID: occurrence.program.id,
+                             title: "\(occurrence.program.name) · \(occurrence.day.name)", scheduledFor: occurrence.date,
+                             exercises: items(occurrence.day.exercises, rest: occurrence.day.restSeconds))
+            } + plans
+        }
+        var seen = Set<String>()
+        let replacements = plans.flatMap(\.exercises).filter { seen.insert($0.exercise.identity).inserted }
+        return WearablePlanFeed(plans: plans, replacements: replacements, language: display.language.resolved,
+                               weight: display.weight, distance: display.distance)
+    }
+
+    func recommendation(for exercise: StrengthExercise) -> ProgressionRecommendation? {
+        guard let target = exercise.progression,
+              let next = exercise.sets.first(where: { !$0.done && $0.warmup != true }) else { return nil }
+        return DoubleProgression.recommend(target: target,
+            workingSets: exercise.plannedWorkingSets ?? exercise.sets.filter { $0.warmup != true }.count,
+            kg: next.kg, equipment: ExerciseCatalog.byID[exercise.identity]?.equipment,
+            history: log.progressionHistory(for: exercise.identity))
+    }
+
+    func changeSchedule(_ workout: ProgramOccurrence, date: Date, skip: Bool) {
+        update { log in
+            var overrides = log.scheduleOverrides ?? []
+            overrides.removeAll {
+                $0.programID == workout.program.id && $0.dayID == workout.day.id && $0.originalDay == workout.originalDay
+            }
+            var change = ScheduledWorkout(programID: workout.program.id, dayID: workout.day.id, date: workout.originalDate, originalDay: workout.originalDay)
+            change.date = date
+            change.skipped = skip
+            overrides.append(change)
+            log.scheduleOverrides = overrides
+        }
+    }
+
 
     func add(_ exercise: StrengthExercise) {
         let previous = log.previousSets(for: exercise.identity)
@@ -100,7 +188,7 @@ final class GymLog: ObservableObject {
               let exercise = log.exercises.firstIndex(where: { $0.id == exerciseID }),
               let set = log.exercises[exercise].sets.firstIndex(where: { $0.id == setID }) else { return }
         let value = log.exercises[exercise].sets[set]
-        guard value.kg.isFinite, value.kg >= 0, value.reps > 0 else { return }
+        guard value.kg.isFinite, value.kg >= 0, value.reps > 0, value.hasValidEffort else { return }
         guard update({ log in
             log.exercises[exercise].sets[set].done.toggle()
             if !value.done {

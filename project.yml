@@ -52,6 +52,7 @@ targets:
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleLocalizations: [en, da]
+        WorkingOutWatchBundleIdentifier: "$(WATCH_APP_BUNDLE_IDENTIFIER)"
         NSLocationWhenInUseUsageDescription: "WorkingOut uses your location during a run to measure distance, pace, and route."
         # Required in the companion app because the embedded Watch app uses HealthKit.
         NSHealthShareUsageDescription: "WorkingOut reads workouts, heart rate, distance and energy to show training history and progress."
@@ -79,7 +80,7 @@ targets:
     sources:
       - path: WatchApp/PadelWatch
     dependencies:
-      - package: PadelKit
+      - package: WorkingOutKit
       - target: PadelWatchWidgets
         embed: true
     entitlements:
