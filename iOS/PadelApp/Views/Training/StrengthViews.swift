@@ -53,11 +53,6 @@ struct StrengthEditor: View {
                     }
                     ForEach($exercise.sets) { $set in
                         VStack(alignment: .leading, spacing: 8) {
-                            if let planned = set.plannedReps {
-                                Text("\(display.text("planned")): \(planned) \(display.text("reps"))")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(.secondary)
-                            }
                             ViewThatFits(in: .horizontal) {
                                 HStack { fields($set); completion(exercise.id, set, rest: exercise.restSeconds) }
                                 VStack(alignment: .leading) { fields($set); completion(exercise.id, set, rest: exercise.restSeconds) }

@@ -5950,23 +5950,6 @@
           }
         }
       }
-    },
-    "planned": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Planned"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Planlagt"
-          }
-        }
-      }
     }
   },
   "version": "1.0"

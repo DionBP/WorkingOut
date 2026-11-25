@@ -29,6 +29,13 @@ struct ExerciseTargets: View {
     let display: TrainingPresentation
     @State private var pickExercise = false
 
+    private func targetSummary(_ exercise: StrengthExercise) -> String {
+        let working = exercise.sets.filter { $0.warmup != true }
+        let reps = exercise.progression.map { "\($0.minimum)–\($0.maximum)" }
+            ?? working.map { String($0.reps) }.joined(separator: "/")
+        return "\(working.count) \(display.text("workSets")) · \(reps) \(display.text("reps"))"
+    }
+
     var body: some View {
         Section(display.text("exerciseLibrary")) {
             ForEach($exercises) { $exercise in
@@ -77,13 +84,6 @@ private struct ExerciseTargetEditor: View {
     @Binding var exercise: StrengthExercise
     let display: TrainingPresentation
     let title: String
-
-    private func targetSummary(_ exercise: StrengthExercise) -> String {
-        let working = exercise.sets.filter { $0.warmup != true }
-        let reps = exercise.progression.map { "\($0.minimum)–\($0.maximum)" }
-            ?? working.map { String($0.reps) }.joined(separator: "/")
-        return "\(working.count) \(display.text("workSets")) · \(reps) \(display.text("reps"))"
-    }
 
     private var target: Binding<ProgressionTarget> {
         Binding(get: {

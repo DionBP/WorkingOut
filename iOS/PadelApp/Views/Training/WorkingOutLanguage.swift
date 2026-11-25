@@ -28,9 +28,6 @@ struct TrainingPresentation {
     func text(_ key: String) -> String { language.text(key) }
 
     func name(_ exercise: StrengthExercise, custom: [CustomExercise]) -> String {
-        if let customName = exercise.customName?.trimmingCharacters(in: .whitespacesAndNewlines), !customName.isEmpty {
-            return customName
-        }
         if let id = exercise.exerciseID {
             if let definition = ExerciseCatalog.byID[id] { return exerciseTitle(definition) }
             if let definition = custom.first(where: { $0.id == id }) { return definition.name }
